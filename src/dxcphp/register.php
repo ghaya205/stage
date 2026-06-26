@@ -3,7 +3,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: http://localhost:5173');
+header('Access-Control-Allow-Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? '*'));
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
@@ -13,14 +13,27 @@ $data     = json_decode(file_get_contents('php://input'), true);
 $name     = trim($data['name']     ?? '');
 $email    = trim($data['email']    ?? '');
 $password =      $data['password'] ?? '';
-$role     = trim($data['role']     ?? 'agent');
+$roleName = strtolower(trim($data['role'] ?? ''));
 
-if (!$name || !$email || !$password) {
+if (!$name || !$email || !$password || !$roleName) {
     http_response_code(400);
-    echo json_encode(['error' => 'Name, email and password are required']);
+    echo json_encode(['error' => 'Name, email, password and role are required']);
     exit;
 }
 
+// Look up role_id from roles table (case-insensitive)
+$roleStmt = $pdo->prepare("SELECT id FROM roles WHERE LOWER(name) = ?");
+$roleStmt->execute([$roleName]);
+$roleRow = $roleStmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$roleRow) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Invalid role selected']);
+    exit;
+}
+$roleId = $roleRow['id'];
+
+// Check duplicate email
 $check = $pdo->prepare("SELECT id FROM users WHERE email = ?");
 $check->execute([$email]);
 if ($check->fetch()) {
@@ -30,8 +43,8 @@ if ($check->fetch()) {
 }
 
 $hash = password_hash($password, PASSWORD_BCRYPT);
-$stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
-$stmt->execute([$name, $email, $hash, $role]);
+$stmt = $pdo->prepare("INSERT INTO users (name, email, password, role_id) VALUES (?, ?, ?, ?)");
+$stmt->execute([$name, $email, $hash, $roleId]);
 
 http_response_code(201);
 echo json_encode(['message' => 'Account created successfully']);

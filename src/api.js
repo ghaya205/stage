@@ -1,5 +1,3 @@
-// Project is at C:\xampp\htdocs\dxc\project
-// So Apache serves PHP at http://localhost/dxc/project/src/dxcphp/
 const BASE = 'http://localhost/dxc/project/src/dxcphp';
 
 export async function loginUser(email, password) {

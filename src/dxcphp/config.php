@@ -13,7 +13,7 @@ foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line)
     if ($line === '' || str_starts_with($line, '#')) continue;
     if (!str_contains($line, '=')) continue;
     [$key, $val] = explode('=', $line, 2);
-    $_ENV[trim($key)] = trim($val, " \t\n\r\0\x0B'\"");
+    $_ENV[trim($key)] = trim($val);
 }
 
 define('JWT_SECRET', $_ENV['jwtsecret'] ?? '');
