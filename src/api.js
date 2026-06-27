@@ -1,18 +1,18 @@
-const BASE = 'http://localhost/dxc/project/src/dxcphp';
+const BASE = "http://localhost/project/backend/public";
 
 export async function loginUser(email, password) {
-  const res = await fetch(`${BASE}/login.php`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const res = await fetch(`${BASE}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
   return res.json();
 }
 
 export async function registerUser(name, email, password, role) {
-  const res = await fetch(`${BASE}/register.php`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const res = await fetch(`${BASE}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, email, password, role }),
   });
   const data = await res.json();
@@ -20,7 +20,7 @@ export async function registerUser(name, email, password, role) {
 }
 
 export async function fetchProtected(token) {
-  const res = await fetch(`${BASE}/protected.php`, {
+  const res = await fetch(`${BASE}/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.json();

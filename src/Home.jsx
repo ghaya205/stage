@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import './App.css';
 
 export default function Home() {
   const { token, user, logout } = useAuth();
