@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import { Menu } from 'lucide-react';
 
 function getInitials(name) {
   if (!name) return '?';
@@ -29,15 +30,14 @@ export default function Navbar({ onToggleSidebar, pageTitle }) {
   return (
     <header className="dash-navbar">
       <button className="dash-navbar-toggle" onClick={onToggleSidebar} aria-label="Toggle sidebar">
-      
+        <Menu size={20} />
       </button>
 
       <div className="dash-navbar-breadcrumb">
         <span>{pageTitle ?? 'Dashboard'}</span>
       </div>
 
-      <div className="dash-navbar-actions">
-       
+      
 
         <div
           className="dash-navbar-avatar"
@@ -49,7 +49,7 @@ export default function Navbar({ onToggleSidebar, pageTitle }) {
         >
           {getInitials(user?.name)}
         </div>
-      </div>
+      
     </header>
   );
 }
