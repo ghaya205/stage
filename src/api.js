@@ -9,11 +9,14 @@ export async function loginUser(email, password) {
   return res.json();
 }
 
-export async function registerUser(name, email, password, role) {
+export async function registerUser(name, email, password, role, enterpriseCode = '') {
+  const body = { name, email, password, role };
+  if (enterpriseCode) body.enterprise_code = enterpriseCode;
+
   const res = await fetch(`${BASE}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password, role }),
+    body: JSON.stringify(body),
   });
   const data = await res.json();
   return { ok: res.ok, data };
@@ -46,6 +49,39 @@ export async function updatePassword(token, payload) {
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
+  });
+  return res.json();
+}
+
+// ── Admin approval API ──────────────────────────────────────────────────────
+
+export async function fetchAllUsers(token) {
+  const res = await fetch(`${BASE}/admin/users`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function approveUser(token, userId) {
+  const res = await fetch(`${BASE}/admin/users/approve`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ user_id: userId }),
+  });
+  return res.json();
+}
+
+export async function rejectUser(token, userId) {
+  const res = await fetch(`${BASE}/admin/users/reject`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ user_id: userId }),
   });
   return res.json();
 }

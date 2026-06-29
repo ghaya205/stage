@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { loginUser } from './api';
-import { Mail, Lock, Eye, EyeOff, Calendar, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Calendar, AlertCircle, Clock } from 'lucide-react';
 import heroImg from './assets/hero.png';
 import dxcLogo from './assets/dxclogo.png';
 import './login.css';
@@ -15,6 +15,7 @@ export default function Login() {
   const [showPwd, setShowPwd]   = useState(false);
   const [remember, setRemember] = useState(false);
   const [error, setError]       = useState('');
+  const [errorType, setErrorType] = useState(''); // 'pending' | 'rejected' | 'generic'
   const [loading, setLoading]   = useState(false);
   const [now, setNow]           = useState(new Date());
 
@@ -30,7 +31,7 @@ export default function Login() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError(''); setLoading(true);
+    setError(''); setErrorType(''); setLoading(true);
     try {
       const data = await loginUser(email, password);
       if (data.token) {
@@ -38,10 +39,18 @@ export default function Login() {
         login(data.token, { name: payload.name, email: payload.email, role_id: payload.role_id });
         const roleRoutes = { 1: '/agent/dashboard', 2: '/supervisor/dashboard', 3: '/admin/dashboard' };
         navigate(roleRoutes[payload.role_id] ?? '/agent/dashboard');
+      } else if (data.error === 'pending_approval') {
+        setErrorType('pending');
+        setError(data.message || 'Your account is pending admin approval.');
+      } else if (data.error === 'account_rejected') {
+        setErrorType('rejected');
+        setError(data.message || 'Your account was declined.');
       } else {
+        setErrorType('generic');
         setError(data.error || 'Login failed. Check your credentials.');
       }
     } catch (err) {
+      setErrorType('generic');
       setError('Network error: ' + (err?.message || String(err)));
     } finally {
       setLoading(false);
@@ -62,7 +71,6 @@ export default function Login() {
           <div className="auth-hero-content">
             <h2>Delivering<br/>Excellence,<br/><em>Every Day.</em></h2>
             <p>Monitor SLA performance in real time and deliver exceptional service.</p>
-
           </div>
         </div>
 
@@ -83,7 +91,22 @@ export default function Login() {
           <h2>Welcome Back</h2>
           <p className="auth-subtitle">Sign in to access your SLA Dashboard</p>
 
-          {error && (
+          {errorType === 'pending' && (
+            <div className="auth-msg-error" style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start', background: 'rgba(124,58,237,0.08)', borderColor: 'rgba(124,58,237,0.3)', color: '#5b21b6' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+                <Clock size={14}/> Approval Pending
+              </span>
+              <span style={{ fontSize: '12.5px', fontWeight: 400 }}>{error}</span>
+            </div>
+          )}
+
+          {errorType === 'rejected' && (
+            <div className="auth-msg-error">
+              <AlertCircle size={14}/> {error}
+            </div>
+          )}
+
+          {errorType === 'generic' && (
             <p className="auth-msg-error">
               <AlertCircle size={14}/> {error}
             </p>

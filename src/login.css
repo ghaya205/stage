@@ -299,3 +299,7 @@
   .auth-field-row { grid-template-columns: 1fr; }
   .auth-card { max-width: 420px; min-height: auto; border-radius: 16px; }
 }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}

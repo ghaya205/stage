@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
-import { LayoutDashboard, Settings, LogOut, Shield } from 'lucide-react';
+import { LayoutDashboard, Settings, LogOut, Shield, Users } from 'lucide-react';
 import dxcLogo from '../assets/dxclogo.png';
 
 const roleMenus = {
@@ -42,8 +42,9 @@ const roleMenus = {
     {
       section: 'Administration',
       items: [
-        { icon: Shield, label: 'Management', path: '/admin/management' },
-        { icon: Settings, label: 'Settings', path: '/admin/settings' },
+        { icon: Users,  label: 'User Approvals', path: '/admin/user-approvals' },
+        { icon: Shield, label: 'Management',     path: '/admin/management' },
+        { icon: Settings, label: 'Settings',     path: '/admin/settings' },
       ],
     },
   ],
@@ -54,7 +55,7 @@ export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const roleId = user?.role_id ?? 1;
+  const roleId   = user?.role_id ?? 1;
   const sections = roleMenus[roleId] ?? roleMenus[1];
 
   function handleNav(path) {
@@ -81,7 +82,7 @@ export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
             <div className="dash-sidebar-section-label">{sec.section}</div>
             {sec.items.map(({ icon: Icon, label, path }) => (
               <button
-                key={path}
+                key={path + label}
                 className={`dash-sidebar-item${location.pathname === path ? ' active' : ''}`}
                 onClick={() => handleNav(path)}
               >

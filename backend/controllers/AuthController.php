@@ -45,6 +45,17 @@ class AuthController extends Controller {
             $this->json(['error' => 'Invalid email or password'], 401);
         }
 
+        // Check approval status for agents and supervisors (role_id 1 and 2)
+        if (in_array((int) $user['role_id'], [1, 2])) {
+            $approved = (int) ($user['is_approved'] ?? 0);
+            if ($approved === 0) {
+                $this->json(['error' => 'pending_approval', 'message' => 'Your account is pending admin approval. You will be notified once approved.'], 403);
+            }
+            if ($approved === 2) {
+                $this->json(['error' => 'account_rejected', 'message' => 'Your account registration was declined. Please contact your administrator.'], 403);
+            }
+        }
+
         $payload = [
             'iss'     => 'dxc-app',
             'iat'     => time(),
@@ -59,14 +70,25 @@ class AuthController extends Controller {
     }
 
     public function register(): void {
-        $data     = $this->input();
-        $name     = trim($data['name']     ?? '');
-        $email    = trim($data['email']    ?? '');
-        $password =      $data['password'] ?? '';
-        $roleName = strtolower(trim($data['role'] ?? ''));
+        $data           = $this->input();
+        $name           = trim($data['name']            ?? '');
+        $email          = trim($data['email']           ?? '');
+        $password       =      $data['password']        ?? '';
+        $roleName       = strtolower(trim($data['role'] ?? ''));
+        $enterpriseCode =      $data['enterprise_code'] ?? '';
 
         if (!$name || !$email || !$password || !$roleName) {
             $this->json(['error' => 'Name, email, password and role are required'], 400);
+        }
+
+        if ($roleName === 'admin') {
+            if (!$enterpriseCode) {
+                $this->json(['error' => 'An enterprise code is required to register as an admin.'], 400);
+            }
+            $userModel = new User();
+            if (!$userModel->verifyEnterpriseCode($enterpriseCode)) {
+                $this->json(['error' => 'Invalid enterprise code. Please contact your IT department.'], 403);
+            }
         }
 
         $userModel = new User();
@@ -81,9 +103,18 @@ class AuthController extends Controller {
         }
 
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $userModel->create($name, $email, $hash, $roleId);
 
-        $this->json(['message' => 'Account created successfully'], 201);
+        $preApproved = ($roleName === 'admin');
+        $userModel->create($name, $email, $hash, $roleId, $preApproved);
+
+        if ($preApproved) {
+            $this->json(['message' => 'Admin account created successfully. You can now log in.'], 201);
+        } else {
+            $this->json([
+                'message' => 'Account created! Your account is pending approval by an administrator. You will be able to log in once approved.',
+                'status'  => 'pending_approval',
+            ], 201);
+        }
     }
 
     public function me(): void {
@@ -132,6 +163,63 @@ class AuthController extends Controller {
         $this->json(['message' => 'Password updated successfully']);
     }
 
+    public function listUsers(): void {
+        $decoded = $this->requireAuth();
+        if ((int) $decoded->role_id !== 3) {
+            $this->json(['error' => 'Forbidden'], 403);
+        }
+
+        $userModel = new User();
+        $this->json(['users' => $userModel->getAllUsers()]);
+    }
+
+    public function approveUser(): void {
+        $decoded = $this->requireAuth();
+        if ((int) $decoded->role_id !== 3) {
+            $this->json(['error' => 'Forbidden'], 403);
+        }
+
+        $data   = $this->input();
+        $userId = (int) ($data['user_id'] ?? 0);
+        if (!$userId) {
+            $this->json(['error' => 'user_id is required'], 400);
+        }
+
+        $userModel = new User();
+        $userModel->approveUser($userId, (int) $decoded->sub);
+        $this->json(['message' => 'User approved successfully']);
+    }
+
+    public function rejectUser(): void {
+        $decoded = $this->requireAuth();
+        if ((int) $decoded->role_id !== 3) {
+            $this->json(['error' => 'Forbidden'], 403);
+        }
+
+        $data   = $this->input();
+        $userId = (int) ($data['user_id'] ?? 0);
+        if (!$userId) {
+            $this->json(['error' => 'user_id is required'], 400);
+        }
+
+        $userModel = new User();
+        $userModel->rejectUser($userId);
+        $this->json(['message' => 'User rejected']);
+    }
+
+    public function generateCodeHash(): void {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+        if (!in_array($ip, ['127.0.0.1', '::1'])) {
+            $this->json(['error' => 'Forbidden'], 403);
+        }
+        $data = $this->input();
+        $code = $data['code'] ?? '';
+        if (!$code) {
+            $this->json(['error' => 'code is required'], 400);
+        }
+        $this->json(['hash' => password_hash($code, PASSWORD_BCRYPT)]);
+    }
+
     private function requireAuth(): object {
         $token = $this->bearerToken();
         if (!$token) {
@@ -142,6 +230,17 @@ class AuthController extends Controller {
         } catch (\Exception $e) {
             $this->json(['error' => 'Invalid or expired token'], 401);
         }
+    }
+
+    public function debugUsers(): void {
+        $decoded = $this->requireAuth();
+        if ((int) $decoded->role_id !== 3) {
+            $this->json(["error" => "Forbidden"], 403);
+        }
+        $db = \Core\Database::getInstance();
+        $roles = $db->query("SELECT * FROM roles")->fetchAll();
+        $users = $db->query("SELECT id, name, email, role_id, is_approved FROM users")->fetchAll();
+        $this->json(["roles" => $roles, "users" => $users]);
     }
 
     private function bearerToken(): string {
