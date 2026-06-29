@@ -35,8 +35,9 @@ export default function Login() {
       const data = await loginUser(email, password);
       if (data.token) {
         const payload = JSON.parse(atob(data.token.split('.')[1]));
-        login(data.token, { name: payload.name, email: payload.email });
-        navigate('/home');
+        login(data.token, { name: payload.name, email: payload.email, role_id: payload.role_id });
+        const roleRoutes = { 1: '/agent/dashboard', 2: '/supervisor/dashboard', 3: '/admin/dashboard' };
+        navigate(roleRoutes[payload.role_id] ?? '/agent/dashboard');
       } else {
         setError(data.error || 'Login failed. Check your credentials.');
       }

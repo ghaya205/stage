@@ -1,0 +1,43 @@
+import { useState } from 'react';
+import Sidebar from './Sidebar';
+import Navbar from './Navbar';
+import '../dashboard.css';
+
+export default function DashboardLayout({ children, pageTitle }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  function toggleSidebar() {
+    if (window.innerWidth <= 1024) {
+      setMobileOpen((v) => !v);
+    } else {
+      setCollapsed((v) => !v);
+    }
+  }
+
+  function closeMobile() {
+    setMobileOpen(false);
+  }
+
+  return (
+    <div className="dash-root">
+      <div
+        className={`dash-overlay${mobileOpen ? ' visible' : ''}`}
+        onClick={closeMobile}
+      />
+
+      <Sidebar
+        collapsed={collapsed}
+        mobileOpen={mobileOpen}
+        onCloseMobile={closeMobile}
+      />
+
+      <div className={`dash-body${collapsed ? ' sidebar-collapsed' : ''}`}>
+        <Navbar onToggleSidebar={toggleSidebar} pageTitle={pageTitle} />
+        <main className="dash-content">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}

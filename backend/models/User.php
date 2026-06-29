@@ -17,6 +17,12 @@ class User {
         return $stmt->fetch();
     }
 
+    public function findById(int $id): array|false {
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch();
+    }
+
     public function emailExists(string $email): bool {
         $stmt = $this->db->prepare("SELECT id FROM users WHERE email = ?");
         $stmt->execute([$email]);
@@ -35,5 +41,15 @@ class User {
             "INSERT INTO users (name, email, password, role_id) VALUES (?, ?, ?, ?)"
         );
         return $stmt->execute([$name, $email, $passwordHash, $roleId]);
+    }
+
+    public function updateName(int $id, string $name): bool {
+        $stmt = $this->db->prepare("UPDATE users SET name = ? WHERE id = ?");
+        return $stmt->execute([$name, $id]);
+    }
+
+    public function updatePassword(int $id, string $passwordHash): bool {
+        $stmt = $this->db->prepare("UPDATE users SET password = ? WHERE id = ?");
+        return $stmt->execute([$passwordHash, $id]);
     }
 }
