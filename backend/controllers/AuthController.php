@@ -45,7 +45,7 @@ class AuthController extends Controller {
             $this->json(['error' => 'Invalid email or password'], 401);
         }
 
-        // Check approval status for agents and supervisors (role_id 1 and 2)
+       
         if (in_array((int) $user['role_id'], [1, 2])) {
             $approved = (int) ($user['is_approved'] ?? 0);
             if ($approved === 0) {

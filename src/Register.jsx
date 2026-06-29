@@ -52,7 +52,6 @@ export default function Register() {
     }
   }
 
-  // ── Pending approval screen ─────────────────────────────────────────────
   if (pending) {
     return (
       <div className="login-page-scope">
@@ -189,7 +188,6 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Enterprise code — only shown when Admin is selected */}
               {role === 'admin' && (
                 <div className="auth-field-group" style={{ animation: 'fadeIn .25s ease' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -216,7 +214,6 @@ export default function Register() {
                 </div>
               )}
 
-              {/* Pending approval notice for agents/supervisors */}
               {(role === 'agent' || role === 'supervisor') && (
                 <div style={{ background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.15)', borderRadius: '8px', padding: '10px 14px', marginBottom: '4px' }}>
                   <p style={{ margin: 0, fontSize: '12.5px', color: '#6d28d9', display: 'flex', alignItems: 'center', gap: '6px' }}>

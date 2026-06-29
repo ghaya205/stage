@@ -53,7 +53,6 @@ export async function updatePassword(token, payload) {
   return res.json();
 }
 
-// ── Admin approval API ──────────────────────────────────────────────────────
 
 export async function fetchAllUsers(token) {
   const res = await fetch(`${BASE}/admin/users`, {

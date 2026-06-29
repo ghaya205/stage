@@ -15,7 +15,7 @@ export default function Login() {
   const [showPwd, setShowPwd]   = useState(false);
   const [remember, setRemember] = useState(false);
   const [error, setError]       = useState('');
-  const [errorType, setErrorType] = useState(''); // 'pending' | 'rejected' | 'generic'
+  const [errorType, setErrorType] = useState('');
   const [loading, setLoading]   = useState(false);
   const [now, setNow]           = useState(new Date());
 
