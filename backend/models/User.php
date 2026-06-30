@@ -61,10 +61,7 @@ class User {
         return $stmt->execute([$passwordHash, $id]);
     }
 
-    /**
-     * Get all non-admin users (role_id != 3).
-     * Only selects columns we KNOW exist. No approved_at/approved_by.
-     */
+ 
     public function getAllUsers(): array {
         $stmt = $this->db->prepare(
             "SELECT u.id,

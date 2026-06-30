@@ -208,7 +208,7 @@ export default function UserApprovals() {
       setUsers((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, is_approved: 1 } : u)),
       );
-      showToast(`✓ ${userName} approved — they can now log in.`);
+      showToast(`✓ ${userName} approved , they can now log in.`);
     } catch {
       showToast("Action failed. Please try again.");
     } finally {

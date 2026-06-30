@@ -25,7 +25,7 @@ class AuthController extends Controller {
             'project_root' => PROJECT_ROOT,
             'db'           => $dbOk ? 'ok' : 'error',
             'db_message'   => $dbMsg,
-            'jwt_secret'   => defined('JWT_SECRET') ? (JWT_SECRET !== 'change_me_in_env' ? 'set' : 'default') : 'missing',
+            'jwt_secret' => defined('JWT_SECRET') ? 'set' : 'missing',
         ]);
     }
 

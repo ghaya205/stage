@@ -9,4 +9,4 @@ if ($envFile && file_exists($envFile)) {
     }
 }
 
-define('JWT_SECRET', $_ENV['jwtsecret'] ?? 'change_me_in_env');
+define('JWT_SECRET', $_ENV['jwtsecret'] );
