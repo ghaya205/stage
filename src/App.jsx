@@ -9,7 +9,9 @@ import AgentDashboard      from './pages/agent/AgentDashboard';
 import SupervisorDashboard from './pages/supervisor/SupervisorDashboard';
 import AdminDashboard      from './pages/admin/AdminDashboard';
 import UserApprovals       from './pages/admin/UserApprovals';
+import AdminManagement     from './pages/admin/AdminManagement';
 import ProfilePage         from './pages/profile/ProfilePage';
+import SettingsPage        from './pages/settings/SettingsPage';
 
 function ProtectedRoute({ children }) {
   const { token } = useAuth();
@@ -43,13 +45,17 @@ function AppRoutes() {
 
       <Route path="/agent/dashboard" element={<RoleRoute allowedRoleId={1}><AgentDashboard /></RoleRoute>} />
       <Route path="/agent/profile"   element={<RoleRoute allowedRoleId={1}><ProfilePage /></RoleRoute>} />
+      <Route path="/agent/settings"  element={<RoleRoute allowedRoleId={1}><SettingsPage /></RoleRoute>} />
 
       <Route path="/supervisor/dashboard" element={<RoleRoute allowedRoleId={2}><SupervisorDashboard /></RoleRoute>} />
       <Route path="/supervisor/profile"   element={<RoleRoute allowedRoleId={2}><ProfilePage /></RoleRoute>} />
+      <Route path="/supervisor/settings"  element={<RoleRoute allowedRoleId={2}><SettingsPage /></RoleRoute>} />
 
       <Route path="/admin/dashboard"      element={<RoleRoute allowedRoleId={3}><AdminDashboard /></RoleRoute>} />
       <Route path="/admin/user-approvals" element={<RoleRoute allowedRoleId={3}><UserApprovals /></RoleRoute>} />
+      <Route path="/admin/management"     element={<RoleRoute allowedRoleId={3}><AdminManagement /></RoleRoute>} />
       <Route path="/admin/profile"        element={<RoleRoute allowedRoleId={3}><ProfilePage /></RoleRoute>} />
+      <Route path="/admin/settings"       element={<RoleRoute allowedRoleId={3}><SettingsPage /></RoleRoute>} />
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

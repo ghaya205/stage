@@ -3,7 +3,7 @@ import UserManagement from './UserManagement';
 
 export default function AdminManagement() {
   return (
-    <DashboardLayout pageTitle="User Management">
+    <DashboardLayout pageTitle="Management">
       <UserManagement />
     </DashboardLayout>
   );

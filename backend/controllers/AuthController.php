@@ -163,6 +163,102 @@ class AuthController extends Controller {
         $this->json(['message' => 'Password updated successfully']);
     }
 
+    public function fullProfile(): void {
+        $decoded = $this->requireAuth();
+        $userModel = new User();
+        $profile   = $userModel->getFullProfile((int) $decoded->sub);
+        if (!$profile) {
+            $this->json(['error' => 'User not found'], 404);
+        }
+        $this->json(['profile' => $profile]);
+    }
+
+    public function updateFullProfile(): void {
+        $decoded = $this->requireAuth();
+        $data    = $this->input();
+
+        if (isset($data['name']) && trim($data['name']) === '') {
+            $this->json(['error' => 'Name cannot be empty'], 400);
+        }
+
+        $userModel = new User();
+        $userModel->updateFullProfile((int) $decoded->sub, $data);
+
+        $this->json(['message' => 'Profile updated successfully']);
+    }
+
+    public function uploadProfilePicture(): void {
+        $decoded = $this->requireAuth();
+
+        if (empty($_FILES['picture']) || $_FILES['picture']['error'] !== UPLOAD_ERR_OK) {
+            $this->json(['error' => 'No valid picture uploaded'], 400);
+        }
+
+        $file      = $_FILES['picture'];
+        $allowed   = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        $finfo     = finfo_open(FILEINFO_MIME_TYPE);
+        $mime      = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+
+        if (!isset($allowed[$mime])) {
+            $this->json(['error' => 'Only JPG, PNG or WEBP images are allowed'], 400);
+        }
+
+        if ($file['size'] > 4 * 1024 * 1024) {
+            $this->json(['error' => 'Image must be smaller than 4MB'], 400);
+        }
+
+        $dir = PROJECT_ROOT . '/backend/public/uploads/avatars';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+
+        $filename = 'user_' . $decoded->sub . '_' . time() . '.' . $allowed[$mime];
+        move_uploaded_file($file['tmp_name'], $dir . '/' . $filename);
+
+        $publicPath = 'uploads/avatars/' . $filename;
+
+        $userModel = new User();
+        $userModel->updateProfilePicture((int) $decoded->sub, $publicPath);
+
+        $this->json(['message' => 'Profile picture updated', 'path' => $publicPath]);
+    }
+
+    public function adminCreateUser(): void {
+        $decoded = $this->requireAuth();
+        if ((int) $decoded->role_id !== 3) {
+            $this->json(['error' => 'Forbidden'], 403);
+        }
+
+        $data     = $this->input();
+        $name     = trim($data['name']     ?? '');
+        $email    = trim($data['email']    ?? '');
+        $password =      $data['password'] ?? '';
+        $roleName = strtolower(trim($data['role'] ?? ''));
+
+        if (!$name || !$email || !$password || !$roleName) {
+            $this->json(['error' => 'Name, email, password and role are required'], 400);
+        }
+
+        $userModel = new User();
+
+        $roleId = $userModel->getRoleId($roleName);
+        if ($roleId === false || (int) $roleId === 3) {
+            $this->json(['error' => 'Invalid role selected'], 400);
+        }
+
+        if ($userModel->emailExists($email)) {
+            $this->json(['error' => 'An account with this email already exists'], 409);
+        }
+
+        $hash = password_hash($password, PASSWORD_BCRYPT);
+        $data['role_id'] = $roleId;
+
+        $id = $userModel->createByAdmin($data, $hash);
+
+        $this->json(['message' => 'User created successfully', 'id' => $id], 201);
+    }
+
     public function listUsers(): void {
         $decoded = $this->requireAuth();
         if ((int) $decoded->role_id !== 3) {
