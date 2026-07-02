@@ -13,6 +13,8 @@ import {
   ShieldCheck,
   AlertCircle,
   Search,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 const STATUS = { 0: "pending", 1: "approved", 2: "rejected" };
@@ -160,6 +162,8 @@ export default function UserApprovals() {
   const [toast, setToast] = useState("");
   const [filter, setFilter] = useState("pending");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 4;
 
   const showToast = (msg) => {
     setToast(msg);
@@ -178,7 +182,6 @@ export default function UserApprovals() {
       setLoading(false);
     }
   }, [token]);
-
 
   useEffect(() => {
     let cancelled = false;
@@ -208,7 +211,7 @@ export default function UserApprovals() {
       setUsers((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, is_approved: 1 } : u)),
       );
-      showToast(`✓ ${userName} approved , they can now log in.`);
+      showToast(`${userName} approved, they can now log in.`);
     } catch {
       showToast("Action failed. Please try again.");
     } finally {
@@ -224,7 +227,7 @@ export default function UserApprovals() {
       setUsers((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, is_approved: 2 } : u)),
       );
-      showToast(`✗ ${userName}'s account rejected.`);
+      showToast(`${userName}'s account rejected.`);
     } catch {
       showToast("Action failed. Please try again.");
     } finally {
@@ -263,6 +266,13 @@ export default function UserApprovals() {
     return matchFilter && matchSearch;
   });
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize,
+  );
+
   const fmtDate = (dt) =>
     dt
       ? new Date(dt).toLocaleDateString("en-GB", {
@@ -274,7 +284,7 @@ export default function UserApprovals() {
 
   return (
     <DashboardLayout pageTitle="User Approvals">
-      
+
       {toast && (
         <div
           style={{
@@ -298,7 +308,6 @@ export default function UserApprovals() {
 
       <style>{`
         @keyframes fadeInUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
-        /* FIX 3: Added missing @keyframes spin for the refresh icon */
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .ua-row:hover td { background: #f9fafb !important; }
         .filter-tab { border:none; background:none; cursor:pointer; font-family:Inter,sans-serif; font-size:13px; font-weight:600; padding:7px 16px; border-radius:8px; color:var(--text-secondary); transition:all .18s; }
@@ -309,9 +318,12 @@ export default function UserApprovals() {
         .act-btn:disabled { opacity:.4; cursor:not-allowed; }
         .act-btn.approve { background:rgba(16,185,129,0.12); color:#059669; }
         .act-btn.reject  { background:rgba(239,68,68,0.10);  color:#dc2626; }
+        .page-btn { border:1.5px solid var(--border); background:#fff; cursor:pointer; border-radius:8px; padding:6px 10px; display:flex; align-items:center; justify-content:center; transition:all .15s; color:var(--text-secondary); }
+        .page-btn:hover:not(:disabled) { background:#f9fafb; color:var(--text-primary); }
+        .page-btn:disabled { opacity:.4; cursor:not-allowed; }
       `}</style>
 
-     
+
       <div
         style={{
           display: "flex",
@@ -374,7 +386,6 @@ export default function UserApprovals() {
         </button>
       </div>
 
-      {/* Stat cards */}
       <div
         style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}
       >
@@ -404,7 +415,7 @@ export default function UserApprovals() {
         />
       </div>
 
-      
+
       <div
         style={{
           background: "#fff",
@@ -413,7 +424,7 @@ export default function UserApprovals() {
           overflow: "hidden",
         }}
       >
-        
+
         <div
           style={{
             padding: "16px 20px",
@@ -438,7 +449,10 @@ export default function UserApprovals() {
               <button
                 key={f}
                 className={`filter-tab${filter === f ? " active" : ""}`}
-                onClick={() => setFilter(f)}
+                onClick={() => {
+                  setFilter(f);
+                  setPage(1);
+                }}
               >
                 {f.charAt(0).toUpperCase() + f.slice(1)}
                 {f === "pending" && pendingCount > 0 && (
@@ -476,7 +490,10 @@ export default function UserApprovals() {
             />
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               placeholder="Search name, email, role…"
               style={{
                 paddingLeft: 32,
@@ -513,31 +530,15 @@ export default function UserApprovals() {
         {loading ? (
           <div
             style={{
-              padding: "56px 20px",
-              textAlign: "center",
+              height: 56 * pageSize,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               color: "var(--text-secondary)",
               fontSize: 13,
             }}
           >
             Loading users…
-          </div>
-        ) : filtered.length === 0 ? (
-          <div
-            style={{
-              padding: "56px 20px",
-              textAlign: "center",
-              color: "var(--text-secondary)",
-            }}
-          >
-            <Users size={38} style={{ opacity: 0.18, marginBottom: 10 }} />
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
-              No users found
-            </p>
-            <p style={{ margin: "4px 0 0", fontSize: 13 }}>
-              {filter === "pending"
-                ? "No pending registrations at the moment."
-                : "Try adjusting your filter or search."}
-            </p>
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
@@ -555,7 +556,7 @@ export default function UserApprovals() {
                     borderBottom: "1px solid var(--border)",
                   }}
                 >
-                  
+
                   {[
                     "Name",
                     "Email",
@@ -582,16 +583,17 @@ export default function UserApprovals() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((u, i) => {
+                {paginated.map((u, i) => {
                   const status = STATUS[String(u.is_approved)] ?? "pending";
                   const isBusy = actionId === u.id;
-                  const isLast = i === filtered.length - 1;
+                  const isLast = i === paginated.length - 1;
                   return (
                     <tr
                       key={u.id}
                       className="ua-row"
                       style={{
-                        borderBottom: isLast
+                        height: 56,
+                        borderBottom: isLast && filtered.length >= pageSize
                           ? "none"
                           : "1px solid var(--border)",
                       }}
@@ -648,7 +650,7 @@ export default function UserApprovals() {
                       <td style={{ padding: "13px 16px" }}>
                         <RolePill name={u.role_name} />
                       </td>
-                      
+
                       <td
                         style={{
                           padding: "13px 16px",
@@ -671,7 +673,7 @@ export default function UserApprovals() {
                               <UserCheck size={13} /> Approve
                             </button>
                           )}
-                         
+
                           {status !== "rejected" && (
                             <button
                               className="act-btn reject"
@@ -686,6 +688,46 @@ export default function UserApprovals() {
                     </tr>
                   );
                 })}
+                {paginated.length === 0 && (
+                  <tr style={{ height: 56 * pageSize }}>
+                    <td colSpan={6} style={{ textAlign: "center" }}>
+                      <Users
+                        size={32}
+                        style={{ opacity: 0.18, marginBottom: 8 }}
+                      />
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: "var(--text-primary)",
+                        }}
+                      >
+                        No users found
+                      </p>
+                      <p
+                        style={{
+                          margin: "4px 0 0",
+                          fontSize: 13,
+                          color: "var(--text-secondary)",
+                        }}
+                      >
+                        {filter === "pending"
+                          ? "No pending registrations at the moment."
+                          : "Try adjusting your filter or search."}
+                      </p>
+                    </td>
+                  </tr>
+                )}
+                {paginated.length > 0 &&
+                  paginated.length < pageSize &&
+                  Array.from({ length: pageSize - paginated.length }).map(
+                    (_, idx) => (
+                      <tr key={`filler-${idx}`} style={{ height: 56 }}>
+                        <td colSpan={6} />
+                      </tr>
+                    ),
+                  )}
               </tbody>
             </table>
           </div>
@@ -694,14 +736,49 @@ export default function UserApprovals() {
         {!loading && filtered.length > 0 && (
           <div
             style={{
-              padding: "10px 20px",
+              padding: "12px 20px",
               borderTop: "1px solid var(--border)",
-              fontSize: 12,
-              color: "var(--text-secondary)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 12,
             }}
           >
-            Showing {filtered.length} of {users.length} user
-            {users.length !== 1 ? "s" : ""}
+            <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+              Showing {(safePage - 1) * pageSize + 1}–
+              {Math.min(safePage * pageSize, filtered.length)} of{" "}
+              {filtered.length} user{filtered.length !== 1 ? "s" : ""}
+            </div>
+            <div
+              style={{ display: "flex", alignItems: "center", gap: 8 }}
+            >
+              <button
+                className="page-btn"
+                disabled={safePage <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "var(--text-primary)",
+                  minWidth: 60,
+                  textAlign: "center",
+                }}
+              >
+                Page {safePage} of {totalPages}
+              </span>
+              <button
+                className="page-btn"
+                disabled={safePage >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
           </div>
         )}
       </div>
