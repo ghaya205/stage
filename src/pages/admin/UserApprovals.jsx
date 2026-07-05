@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "../../layouts/DashboardLayout";
-import { useAuth } from "../../AuthContext";
-import { fetchAllUsers, approveUser, rejectUser } from "../../api";
+import { useAuth } from "../../context/AuthContext";
+import {
+  fetchAllUsers,
+  approveUser,
+  rejectUser,
+  fetchPresenceToday,
+} from "../../services/api";
 import {
   Users,
   Clock,
@@ -15,6 +20,9 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  CalendarCheck,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 const STATUS = { 0: "pending", 1: "approved", 2: "rejected" };
@@ -149,6 +157,334 @@ function StatCard({ icon, label, value, color }) {
           {label}
         </div>
       </div>
+    </div>
+  );
+}
+
+function ShiftPill({ shift }) {
+  if (!shift) {
+    return <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>—</span>;
+  }
+  const isNight = shift === "nuit";
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        padding: "2px 10px",
+        borderRadius: "999px",
+        fontSize: "11px",
+        fontWeight: 700,
+        background: isNight ? "rgba(99,102,241,0.10)" : "rgba(245,158,11,0.10)",
+        color: isNight ? "#6366f1" : "#d97706",
+        border: `1px solid ${isNight ? "rgba(99,102,241,0.22)" : "rgba(245,158,11,0.25)"}`,
+      }}
+    >
+      {isNight ? <Moon size={11} /> : <Sun size={11} />}
+      {isNight ? "Nuit" : "Matin"}
+    </span>
+  );
+}
+
+function PresenceStatusPill({ isPresent }) {
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        padding: "2px 10px",
+        borderRadius: "999px",
+        fontSize: "11px",
+        fontWeight: 700,
+        background: isPresent ? "rgba(16,185,129,0.10)" : "rgba(107,114,128,0.10)",
+        color: isPresent ? "#059669" : "#6b7280",
+        border: `1px solid ${isPresent ? "rgba(16,185,129,0.25)" : "rgba(107,114,128,0.20)"}`,
+      }}
+    >
+      {isPresent ? <CheckCircle2 size={11} /> : <Clock size={11} />}
+      {isPresent ? "Present" : "Not marked"}
+    </span>
+  );
+}
+
+function PresenceSection({ token }) {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 4;
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await fetchPresenceToday(token);
+      setUsers(data.users ?? []);
+    } catch {
+      setError("Failed to load presence. Check your connection.");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await fetchPresenceToday(token);
+        if (!cancelled) setUsers(data.users ?? []);
+      } catch {
+        if (!cancelled) setError("Failed to load presence. Check your connection.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  const presentCount = users.filter((u) => u.is_present).length;
+  const totalPages = Math.max(1, Math.ceil(users.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const paginated = users.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  const fmtTime = (dt) =>
+    dt
+      ? new Date(dt.replace(" ", "T")).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "—";
+
+  return (
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: "var(--radius)",
+        boxShadow: "var(--shadow-sm)",
+        overflow: "hidden",
+        marginBottom: 24,
+      }}
+    >
+      <div
+        style={{
+          padding: "16px 20px",
+          borderBottom: "1px solid var(--border)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 12,
+        }}
+      >
+        <div>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: 16,
+              fontWeight: 800,
+              color: "var(--text-primary)",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <CalendarCheck size={17} style={{ color: "var(--dxc-coral)" }} />
+            Today's Presence
+          </h2>
+          <p style={{ margin: "3px 0 0", fontSize: 12.5, color: "var(--text-secondary)" }}>
+            {presentCount} of {users.length} checked in today
+          </p>
+        </div>
+        <button
+          onClick={load}
+          disabled={loading}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "7px 14px",
+            borderRadius: "8px",
+            border: "1.5px solid var(--border)",
+            background: "#fff",
+            cursor: "pointer",
+            fontSize: 12.5,
+            fontWeight: 600,
+            color: "var(--text-secondary)",
+            fontFamily: "Inter,sans-serif",
+          }}
+        >
+          <RefreshCw size={13} style={{ animation: loading ? "spin 1s linear infinite" : "none" }} />
+          Refresh
+        </button>
+      </div>
+
+      {error && (
+        <div
+          style={{
+            padding: "14px 20px",
+            background: "#fef2f2",
+            color: "#dc2626",
+            fontSize: 13,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <AlertCircle size={14} /> {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div
+          style={{
+            height: 56 * pageSize,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--text-secondary)",
+            fontSize: 13,
+          }}
+        >
+          Loading presence…
+        </div>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: "#f9fafb", borderBottom: "1px solid var(--border)" }}>
+                {["Name", "Role", "Shift", "Status", "Since"].map((h) => (
+                  <th
+                    key={h}
+                    style={{
+                      padding: "10px 16px",
+                      textAlign: "left",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {paginated.map((u, i) => {
+                const isLast = i === paginated.length - 1;
+                return (
+                  <tr
+                    key={u.id}
+                    className="ua-row"
+                    style={{
+                      height: 56,
+                      borderBottom: isLast && users.length >= pageSize ? "none" : "1px solid var(--border)",
+                    }}
+                  >
+                    <td style={{ padding: "13px 16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: "50%",
+                            background: "linear-gradient(135deg,#E8643A,#7B8FD4)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "#fff",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {u.name.split(" ").map((p) => p[0]).join("").toUpperCase().slice(0, 2)}
+                        </div>
+                        <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{u.name}</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: "13px 16px" }}>
+                      <RolePill name={u.role_name} />
+                    </td>
+                    <td style={{ padding: "13px 16px" }}>
+                      <ShiftPill shift={u.shift} />
+                    </td>
+                    <td style={{ padding: "13px 16px" }}>
+                      <PresenceStatusPill isPresent={u.is_present} />
+                    </td>
+                    <td style={{ padding: "13px 16px", color: "var(--text-secondary)" }}>
+                      {fmtTime(u.marked_at)}
+                    </td>
+                  </tr>
+                );
+              })}
+              {paginated.length === 0 && (
+                <tr style={{ height: 56 * pageSize }}>
+                  <td colSpan={5} style={{ textAlign: "center" }}>
+                    <Users size={32} style={{ opacity: 0.18, marginBottom: 8 }} />
+                    <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+                      No users found
+                    </p>
+                  </td>
+                </tr>
+              )}
+              {paginated.length > 0 &&
+                paginated.length < pageSize &&
+                Array.from({ length: pageSize - paginated.length }).map((_, idx) => (
+                  <tr key={`presence-filler-${idx}`} style={{ height: 56 }}>
+                    <td colSpan={5} />
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {!loading && users.length > 0 && (
+        <div
+          style={{
+            padding: "12px 20px",
+            borderTop: "1px solid var(--border)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 12,
+          }}
+        >
+          <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+            Showing {(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, users.length)} of{" "}
+            {users.length} user{users.length !== 1 ? "s" : ""}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button
+              className="page-btn"
+              disabled={safePage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", minWidth: 60, textAlign: "center" }}>
+              Page {safePage} of {totalPages}
+            </span>
+            <button
+              className="page-btn"
+              disabled={safePage >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -415,6 +751,7 @@ export default function UserApprovals() {
         />
       </div>
 
+      <PresenceSection token={token} />
 
       <div
         style={{

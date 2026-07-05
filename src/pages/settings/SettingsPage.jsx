@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   fetchFullProfile,
   updateFullProfile,
@@ -7,7 +7,7 @@ import {
   uploadProfilePicture,
   fetchDesks,
   assetUrl,
-} from '../../api';
+} from '../../services/api';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import {
   Eye, EyeOff, CheckCircle, AlertCircle, User, Briefcase,
@@ -32,7 +32,7 @@ const TABS = [
 ];
 
 export default function SettingsPage() {
-  const { user, token, login } = useAuth();
+  const { user, token, login, setAvatar } = useAuth();
 
   const [tab, setTab] = useState('account');
   const [profile, setProfile] = useState(null);
@@ -65,6 +65,7 @@ export default function SettingsPage() {
   function handleProfileUpdated(patch) {
     setProfile((prev) => ({ ...prev, ...patch }));
     if (patch.name) login(token, { ...user, name: patch.name });
+    if (patch.profile_picture !== undefined) setAvatar(patch.profile_picture);
   }
 
   return (
@@ -294,6 +295,7 @@ function ProfessionalTab({ profile, token, desks, onUpdated }) {
     manager_name: profile?.manager_name ?? '',
     hr_manager_name: profile?.hr_manager_name ?? '',
     language: profile?.language ?? '',
+    shift: profile?.shift ?? '',
   });
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
@@ -365,6 +367,18 @@ function ProfessionalTab({ profile, token, desks, onUpdated }) {
             <label>Language</label>
             <input className="profile-input" type="text" value={form.language} onChange={(e) => set('language', e.target.value)} placeholder="e.g. English, French" />
           </div>
+        </div>
+
+        <div className="profile-field-row">
+          <div className="profile-field">
+            <label>Shift</label>
+            <select className="profile-input" value={form.shift} onChange={(e) => set('shift', e.target.value)}>
+              <option value="">Select a shift…</option>
+              <option value="matin">Matin (09:00 – 17:00)</option>
+              <option value="nuit">Nuit (21:00 – 06:00)</option>
+            </select>
+          </div>
+          <div className="profile-field" />
         </div>
 
         <div className="profile-field-row">

@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { LayoutDashboard, Settings, LogOut, Shield, Users } from 'lucide-react';
 import dxcLogo from '../assets/dxclogo.png';
 

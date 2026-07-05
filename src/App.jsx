@@ -1,10 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { AuthProvider } from './AuthProvider';
-import { useAuth } from './AuthContext';
+import { AuthProvider } from './context/AuthProvider';
+import { useAuth } from './context/AuthContext';
 
-import Home                from './Home';
-import Login               from './Login';
-import Register            from './Register';
+import Home                from './pages/home/Home';
+import Login               from './pages/auth/Login';
+import Register            from './pages/auth/Register';
 import AgentDashboard      from './pages/agent/AgentDashboard';
 import SupervisorDashboard from './pages/supervisor/SupervisorDashboard';
 import AdminDashboard      from './pages/admin/AdminDashboard';

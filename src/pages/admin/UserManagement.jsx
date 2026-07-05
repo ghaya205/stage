@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   fetchDesks, createDesk, updateDesk, adminCreateUser,
-} from '../../api';
+} from '../../services/api';
 import {
   UserPlus, Building2, CheckCircle, AlertCircle, Plus, Trash2,
 } from 'lucide-react';
@@ -40,7 +40,7 @@ function CreateUserForm() {
   const [desks, setDesks] = useState([]);
   const [form, setForm] = useState({
     name: '', email: '', password: '', role: 'agent',
-    phone: '', address: '', title: '', desk_id: '', language: '',
+    phone: '', address: '', title: '', desk_id: '', language: '', shift: '',
     manager_name: '', hr_manager_name: '',
   });
   const [msg, setMsg] = useState('');
@@ -78,7 +78,7 @@ function CreateUserForm() {
         setMsg('User created successfully.');
         setForm({
           name: '', email: '', password: '', role: 'agent',
-          phone: '', address: '', title: '', desk_id: '', language: '',
+          phone: '', address: '', title: '', desk_id: '', language: '', shift: '',
           manager_name: '', hr_manager_name: '',
         });
       }
@@ -145,17 +145,25 @@ function CreateUserForm() {
             <input className="profile-input" type="text" value={form.language} onChange={(e) => set('language', e.target.value)} />
           </div>
           <div className="profile-field">
-            <label>Manager</label>
-            <input className="profile-input" type="text" value={form.manager_name} onChange={(e) => set('manager_name', e.target.value)} />
+            <label>Shift</label>
+            <select className="profile-input" value={form.shift} onChange={(e) => set('shift', e.target.value)}>
+              <option value="">Select a shift…</option>
+              <option value="matin">Matin (09:00 – 17:00)</option>
+              <option value="nuit">Nuit (21:00 – 06:00)</option>
+            </select>
           </div>
         </div>
 
         <div className="profile-field-row-3">
           <div className="profile-field">
+            <label>Manager</label>
+            <input className="profile-input" type="text" value={form.manager_name} onChange={(e) => set('manager_name', e.target.value)} />
+          </div>
+          <div className="profile-field">
             <label>HR Manager</label>
             <input className="profile-input" type="text" value={form.hr_manager_name} onChange={(e) => set('hr_manager_name', e.target.value)} />
           </div>
-          <div className="profile-field" style={{ gridColumn: 'span 2' }}>
+          <div className="profile-field">
             <label>Address</label>
             <input className="profile-input" type="text" value={form.address} onChange={(e) => set('address', e.target.value)} />
           </div>

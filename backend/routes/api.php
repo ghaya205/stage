@@ -18,6 +18,11 @@ $router->add('POST', '/admin/users/approve', 'AuthController', 'approveUser');
 $router->add('POST', '/admin/users/reject',  'AuthController', 'rejectUser');
 $router->add('POST', '/admin/users/create',  'AuthController', 'adminCreateUser');
 
+// Presence (daily check-in)
+$router->add('POST', '/presence/mark',  'PresenceController', 'markToday');
+$router->add('GET',  '/presence/me',    'PresenceController', 'myToday');
+$router->add('GET',  '/admin/presence', 'PresenceController', 'listToday');
+
 // Desks
 $router->add('GET',  '/desks',        'DeskController', 'list');
 $router->add('POST', '/desks/create', 'DeskController', 'create');

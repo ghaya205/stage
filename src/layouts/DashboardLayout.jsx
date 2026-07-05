@@ -1,11 +1,33 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
-import '../dashboard.css';
+import { useAuth } from '../context/AuthContext';
+import { fetchFullProfile } from '../services/api';
+import '../styles/dashboard.css';
 
 export default function DashboardLayout({ children, pageTitle }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { token, setAvatar } = useAuth();
+
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    async function loadAvatar() {
+      try {
+        const data = await fetchFullProfile(token);
+        if (!cancelled && data.profile) {
+          setAvatar(data.profile.profile_picture || null);
+        }
+      } catch {
+        // Avatar just falls back to initials if this fails.
+      }
+    }
+    loadAvatar();
+    return () => {
+      cancelled = true;
+    };
+  }, [token, setAvatar]);
 
   function toggleSidebar() {
     if (window.innerWidth <= 1024) {

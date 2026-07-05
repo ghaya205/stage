@@ -1,9 +1,25 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../AuthContext";
-import { fetchFullProfile, assetUrl } from "../../api";
+import { useAuth } from "../../context/AuthContext";
+import {
+  fetchFullProfile,
+  fetchMyPresence,
+  markPresence,
+  assetUrl,
+} from "../../services/api";
 import DashboardLayout from "../../layouts/DashboardLayout";
-import { Shield, Pencil, AlertCircle, User, Briefcase } from "lucide-react";
+import {
+  Shield,
+  Pencil,
+  AlertCircle,
+  User,
+  Briefcase,
+  CalendarCheck,
+  CheckCircle2,
+  Clock,
+  Moon,
+  Sun,
+} from "lucide-react";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -25,6 +41,20 @@ function getRolePath(roleId) {
   return map[roleId] ?? "/agent";
 }
 
+function getShiftLabel(shift) {
+  if (shift === "matin") return "Matin (09:00 – 17:00)";
+  if (shift === "nuit") return "Nuit (21:00 – 06:00)";
+  return null;
+}
+
+function fmtTime(dt) {
+  if (!dt) return "";
+  return new Date(dt.replace(" ", "T")).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function InfoRow({ label, value }) {
   const isEmpty = !value;
   return (
@@ -32,6 +62,92 @@ function InfoRow({ label, value }) {
       <label>{label}</label>
       <div className={`profile-view-value${isEmpty ? " is-empty" : ""}`}>
         {isEmpty ? "Not provided" : value}
+      </div>
+    </div>
+  );
+}
+
+function PresenceCard({ token }) {
+  const [presence, setPresence] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [marking, setMarking] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      try {
+        const data = await fetchMyPresence(token);
+        if (!cancelled) setPresence(data.presence ?? null);
+      } catch {
+        if (!cancelled) setError("Could not load today's presence status.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  async function handleMark() {
+    setMarking(true);
+    setError("");
+    try {
+      const data = await markPresence(token);
+      if (data.error) setError(data.error);
+      else setPresence(data.presence ?? null);
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setMarking(false);
+    }
+  }
+
+  const isPresent = !!presence;
+  const today = new Date().toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "2-digit",
+    month: "short",
+  });
+
+  return (
+    <div className="profile-card presence-card">
+      <div className="profile-card-title">
+        <CalendarCheck size={13} style={{ marginRight: 6, verticalAlign: -2 }} />
+        Today's Presence
+      </div>
+
+      {error && (
+        <div className="profile-msg-err">
+          <AlertCircle size={14} /> {error}
+        </div>
+      )}
+
+      <div className="presence-row">
+        <div>
+          <div className="presence-date">{today}</div>
+          {loading ? (
+            <div className="presence-status is-loading">Checking status…</div>
+          ) : isPresent ? (
+            <div className="presence-status is-present">
+              <CheckCircle2 size={15} /> Present since {fmtTime(presence.marked_at)}
+            </div>
+          ) : (
+            <div className="presence-status is-absent">
+              <Clock size={15} /> Not marked present yet
+            </div>
+          )}
+        </div>
+        <button
+          className="profile-save-btn presence-mark-btn"
+          onClick={handleMark}
+          disabled={marking || isPresent}
+        >
+          {isPresent ? "You're present" : marking ? "Marking…" : "I'm present today"}
+        </button>
       </div>
     </div>
   );
@@ -71,6 +187,7 @@ export default function ProfilePage() {
 
   const roleLabel = getRoleLabel(user?.role_id);
   const roleBase = getRolePath(user?.role_id);
+  const shiftLabel = getShiftLabel(profile?.shift);
 
   return (
     <DashboardLayout pageTitle="Profile">
@@ -92,6 +209,12 @@ export default function ProfilePage() {
               <Shield size={11} />
               {roleLabel}
             </div>
+            {shiftLabel && (
+              <div className="profile-shift-badge">
+                {profile?.shift === "nuit" ? <Moon size={11} /> : <Sun size={11} />}
+                {shiftLabel}
+              </div>
+            )}
           </div>
           <button
             className="profile-save-btn profile-edit-btn"
@@ -106,6 +229,8 @@ export default function ProfilePage() {
             <AlertCircle size={14} /> {error}
           </div>
         )}
+
+        <PresenceCard token={token} />
 
         {loading ? (
           <div className="profile-card profile-loading">Loading profile…</div>
@@ -151,6 +276,10 @@ export default function ProfilePage() {
               <div className="profile-field-row">
                 <InfoRow label="Title" value={profile?.title} />
                 <InfoRow label="Assigned Project" value={profile?.desk_name} />
+              </div>
+              <div className="profile-field-row">
+                <InfoRow label="Shift" value={shiftLabel} />
+                <div />
               </div>
               <div className="profile-field-row">
                 <InfoRow label="Diplomas" value={profile?.diplomas} />

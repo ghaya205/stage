@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../AuthContext';
+import { useAuth } from '../context/AuthContext';
+import { assetUrl } from '../services/api';
 import { Menu } from 'lucide-react';
 
 function getInitials(name) {
@@ -18,7 +19,7 @@ function getRolePath(roleId) {
 }
 
 export default function Navbar({ onToggleSidebar, pageTitle }) {
-  const { user } = useAuth();
+  const { user, avatar } = useAuth();
   const navigate = useNavigate();
 
   const roleBase = getRolePath(user?.role_id);
@@ -47,7 +48,11 @@ export default function Navbar({ onToggleSidebar, pageTitle }) {
           onClick={goToProfile}
           onKeyDown={(e) => e.key === 'Enter' && goToProfile()}
         >
-          {getInitials(user?.name)}
+          {avatar ? (
+            <img className="dash-navbar-avatar-img" src={assetUrl(avatar)} alt={user?.name} />
+          ) : (
+            getInitials(user?.name)
+          )}
         </div>
       
     </header>

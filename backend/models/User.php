@@ -80,7 +80,7 @@ class User {
             'name', 'national_id', 'phone', 'address', 'governorate',
             'marital_status', 'child_number', 'title', 'desk_id',
             'technical_skills', 'diplomas', 'certifications', 'skills',
-            'manager_name', 'hr_manager_name', 'language',
+            'manager_name', 'hr_manager_name', 'language', 'shift',
         ];
 
         $set    = [];
@@ -112,8 +112,8 @@ class User {
             "INSERT INTO users
                 (name, email, password, role_id, is_approved, national_id, phone, address,
                  governorate, marital_status, child_number, title, desk_id, technical_skills,
-                 diplomas, certifications, skills, manager_name, hr_manager_name, language)
-             VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                 diplomas, certifications, skills, manager_name, hr_manager_name, language, shift)
+             VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $stmt->execute([
             $data['name'],
@@ -135,6 +135,7 @@ class User {
             $data['manager_name']     ?? null,
             $data['hr_manager_name']  ?? null,
             $data['language']         ?? null,
+            $data['shift']            ?? null,
         ]);
         return (int) $this->db->lastInsertId();
     }
@@ -153,6 +154,23 @@ class User {
              JOIN roles r ON r.id = u.role_id
              WHERE u.role_id != 3
              ORDER BY u.is_approved ASC, u.id DESC"
+        );
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function getAllForPresence(): array {
+        $stmt = $this->db->prepare(
+            "SELECT u.id,
+                    u.name,
+                    u.email,
+                    u.role_id,
+                    u.shift,
+                    r.name AS role_name
+             FROM users u
+             JOIN roles r ON r.id = u.role_id
+             WHERE u.is_approved = 1
+             ORDER BY u.role_id ASC, u.name ASC"
         );
         $stmt->execute();
         return $stmt->fetchAll();
