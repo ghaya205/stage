@@ -288,7 +288,6 @@ function ProfessionalTab({ profile, token, desks, onUpdated }) {
   const [form, setForm] = useState({
     title: profile?.title ?? '',
     desk_id: profile?.desk_id ?? '',
-    technical_skills: profile?.technical_skills ?? '',
     diplomas: profile?.diplomas ?? '',
     certifications: profile?.certifications ?? '',
     skills: profile?.skills ?? '',
@@ -346,11 +345,6 @@ function ProfessionalTab({ profile, token, desks, onUpdated }) {
           </div>
         </div>
 
-        <div className="profile-field">
-          <label>Technical Skills</label>
-          <textarea className="profile-input" rows={3} value={form.technical_skills} onChange={(e) => set('technical_skills', e.target.value)} />
-        </div>
-
         <div className="profile-field-row">
           <div className="profile-field">
             <label>Diplomas</label>
@@ -362,9 +356,15 @@ function ProfessionalTab({ profile, token, desks, onUpdated }) {
           </div>
         </div>
 
-        <div className="profile-field">
-          <label>Skills</label>
-          <textarea className="profile-input" rows={2} value={form.skills} onChange={(e) => set('skills', e.target.value)} />
+        <div className="profile-field-row">
+          <div className="profile-field">
+            <label>Skills</label>
+            <textarea className="profile-input" rows={2} value={form.skills} onChange={(e) => set('skills', e.target.value)} />
+          </div>
+          <div className="profile-field">
+            <label>Language</label>
+            <input className="profile-input" type="text" value={form.language} onChange={(e) => set('language', e.target.value)} placeholder="e.g. English, French" />
+          </div>
         </div>
 
         <div className="profile-field-row">
@@ -376,11 +376,6 @@ function ProfessionalTab({ profile, token, desks, onUpdated }) {
             <label>HR Manager</label>
             <input className="profile-input" type="text" value={form.hr_manager_name} onChange={(e) => set('hr_manager_name', e.target.value)} />
           </div>
-        </div>
-
-        <div className="profile-field">
-          <label>Language</label>
-          <input className="profile-input" type="text" value={form.language} onChange={(e) => set('language', e.target.value)} placeholder="e.g. English, French" />
         </div>
 
         <button className="profile-save-btn" type="submit" disabled={loading}>

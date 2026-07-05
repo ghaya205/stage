@@ -368,11 +368,12 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
 }
 
-.profile-card-span2 {
-  grid-column: 1 / -1;
+.profile-grid-2col .profile-card {
+  display: flex;
+  flex-direction: column;
 }
 
 @media (max-width: 900px) {
@@ -445,8 +446,8 @@
 .profile-card {
   background: var(--bg-white);
   border-radius: var(--radius);
-  padding: 24px 28px;
-  margin-bottom: 16px;
+  padding: 22px 24px;
+  margin-bottom: 14px;
   box-shadow: var(--shadow-sm);
 }
 
@@ -456,16 +457,16 @@
   color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding-bottom: 14px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .profile-field {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .profile-field:last-child {
@@ -546,6 +547,24 @@
   }
 }
 
+.profile-field-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 760px) {
+  .profile-field-row-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-field-row-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
 .profile-save-btn {
   padding: 10px 22px;
   background: var(--dxc-gradient-h);
@@ -608,15 +627,31 @@
 }
 
 .profile-view-value {
-  padding: 9px 13px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  font-size: 13.5px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
   color: var(--text-primary);
-  background: #F3F4F8;
   min-height: 20px;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.profile-view-value.is-empty {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.profile-card > .profile-field-row:not(:last-child),
+.profile-card > .profile-field:not(:last-child) {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.profile-card > .profile-field-row .profile-field,
+.profile-card > .profile-field {
+  margin-bottom: 0;
 }
 
 .profile-loading {
@@ -634,11 +669,11 @@
 }
 
 .settings-page {
-  max-width: 720px;
+  max-width: 1040px;
 }
 
 .mgmt-page {
-  max-width: 900px;
+  max-width: 1320px;
 }
 
 .settings-tabs {

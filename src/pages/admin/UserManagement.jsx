@@ -97,7 +97,7 @@ function CreateUserForm() {
       {err && <div className="profile-msg-err"><AlertCircle size={14} /> {err}</div>}
 
       <form onSubmit={handleSubmit}>
-        <div className="profile-field-row">
+        <div className="profile-field-row-3">
           <div className="profile-field">
             <label>Full Name</label>
             <input className="profile-input" type="text" value={form.name} onChange={(e) => set('name', e.target.value)} required />
@@ -106,13 +106,13 @@ function CreateUserForm() {
             <label>Email</label>
             <input className="profile-input" type="email" value={form.email} onChange={(e) => set('email', e.target.value)} required />
           </div>
-        </div>
-
-        <div className="profile-field-row">
           <div className="profile-field">
             <label>Temporary Password</label>
             <input className="profile-input" type="text" value={form.password} onChange={(e) => set('password', e.target.value)} placeholder="Min. 8 characters" required />
           </div>
+        </div>
+
+        <div className="profile-field-row-3">
           <div className="profile-field">
             <label>Role</label>
             <select className="profile-input" value={form.role} onChange={(e) => set('role', e.target.value)}>
@@ -120,9 +120,6 @@ function CreateUserForm() {
               <option value="supervisor">Supervisor</option>
             </select>
           </div>
-        </div>
-
-        <div className="profile-field-row">
           <div className="profile-field">
             <label>Phone</label>
             <input className="profile-input" type="text" value={form.phone} onChange={(e) => set('phone', e.target.value)} />
@@ -133,7 +130,7 @@ function CreateUserForm() {
           </div>
         </div>
 
-        <div className="profile-field-row">
+        <div className="profile-field-row-3">
           <div className="profile-field">
             <label>Assigned Project</label>
             <select className="profile-input" value={form.desk_id} onChange={(e) => set('desk_id', e.target.value)}>
@@ -147,22 +144,21 @@ function CreateUserForm() {
             <label>Language</label>
             <input className="profile-input" type="text" value={form.language} onChange={(e) => set('language', e.target.value)} />
           </div>
-        </div>
-
-        <div className="profile-field-row">
           <div className="profile-field">
             <label>Manager</label>
             <input className="profile-input" type="text" value={form.manager_name} onChange={(e) => set('manager_name', e.target.value)} />
           </div>
+        </div>
+
+        <div className="profile-field-row-3">
           <div className="profile-field">
             <label>HR Manager</label>
             <input className="profile-input" type="text" value={form.hr_manager_name} onChange={(e) => set('hr_manager_name', e.target.value)} />
           </div>
-        </div>
-
-        <div className="profile-field">
-          <label>Address</label>
-          <input className="profile-input" type="text" value={form.address} onChange={(e) => set('address', e.target.value)} />
+          <div className="profile-field" style={{ gridColumn: 'span 2' }}>
+            <label>Address</label>
+            <input className="profile-input" type="text" value={form.address} onChange={(e) => set('address', e.target.value)} />
+          </div>
         </div>
 
         <button className="profile-save-btn" type="submit" disabled={loading}>
