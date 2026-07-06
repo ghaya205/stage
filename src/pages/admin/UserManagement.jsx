@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
   fetchDesks, createDesk, updateDesk, adminCreateUser,
+  fetchAllQualifications, adminDeleteQualification, approveQualification, assetUrl,
 } from '../../services/api';
 import {
-  UserPlus, Building2, CheckCircle, AlertCircle, Plus, Trash2,
+  UserPlus, Building2, CheckCircle, AlertCircle, Plus, Trash2, Award, GraduationCap, Check,
 } from 'lucide-react';
 
 const TOP_TABS = [
   { key: 'user', label: 'Create User', icon: UserPlus },
   { key: 'desk', label: 'Desks', icon: Building2 },
+  { key: 'certs', label: 'Certifications', icon: Award },
 ];
 
 export default function UserManagement() {
@@ -31,6 +33,99 @@ export default function UserManagement() {
 
       {tab === 'user' && <CreateUserForm />}
       {tab === 'desk' && <DeskManagement />}
+      {tab === 'certs' && <CertificationReview />}
+    </div>
+  );
+}
+
+function CertificationReview() {
+  const { token } = useAuth();
+  const [qualifications, setQualifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await fetchAllQualifications(token);
+      setQualifications(data.qualifications ?? []);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    (async () => {
+      await load();
+    })();
+  }, [load]);
+
+  async function handleApprove(id) {
+    await approveQualification(token, id);
+    load();
+  }
+
+  async function handleDelete(id) {
+    await adminDeleteQualification(token, id);
+    load();
+  }
+
+  return (
+    <div className="profile-card">
+      <div className="profile-card-title">Diplomas &amp; Certifications</div>
+      {loading ? (
+        <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Loading…</div>
+      ) : qualifications.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>No qualifications submitted yet.</div>
+      ) : (
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: '#f9fafb', borderBottom: '1px solid var(--border)' }}>
+                {['User', 'Type', 'Name', 'Institution', 'Proof', 'Status', 'Actions'].map((h) => (
+                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {qualifications.map((q) => {
+                const Icon = q.type === 'diploma' ? GraduationCap : Award;
+                return (
+                  <tr key={q.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <td style={{ padding: '12px 14px' }}>{q.user_name}<div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{q.user_email}</div></td>
+                    <td style={{ padding: '12px 14px' }}><Icon size={14} style={{ marginRight: 4, verticalAlign: -2 }} />{q.type}</td>
+                    <td style={{ padding: '12px 14px', fontWeight: 600 }}>{q.name}</td>
+                    <td style={{ padding: '12px 14px', color: 'var(--text-secondary)' }}>{q.institution ?? '—'}</td>
+                    <td style={{ padding: '12px 14px' }}>
+                      {q.proof_path ? (
+                        <a href={assetUrl(q.proof_path)} target="_blank" rel="noreferrer">View</a>
+                      ) : '—'}
+                    </td>
+                    <td style={{ padding: '12px 14px' }}>
+                      <span style={{
+                        padding: '2px 9px', borderRadius: 999, fontSize: 11, fontWeight: 700,
+                        background: q.status === 'approved' ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
+                        color: q.status === 'approved' ? '#059669' : '#b45309',
+                      }}>{q.status}</span>
+                    </td>
+                    <td style={{ padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        {q.status !== 'approved' && (
+                          <button onClick={() => handleApprove(q.id)} style={{ padding: '5px 10px', borderRadius: 6, border: 'none', background: '#059669', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                            <Check size={12} />
+                          </button>
+                        )}
+                        <button onClick={() => handleDelete(q.id)} style={{ padding: '5px 10px', borderRadius: 6, border: 'none', background: '#dc2626', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

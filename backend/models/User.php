@@ -166,6 +166,7 @@ class User {
                     u.email,
                     u.role_id,
                     u.shift,
+                    u.desk_id,
                     r.name AS role_name
              FROM users u
              JOIN roles r ON r.id = u.role_id
@@ -173,6 +174,24 @@ class User {
              ORDER BY u.role_id ASC, u.name ASC"
         );
         $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function getDeskAgentsForPresence(int $deskId): array {
+        $stmt = $this->db->prepare(
+            "SELECT u.id,
+                    u.name,
+                    u.email,
+                    u.role_id,
+                    u.shift,
+                    u.desk_id,
+                    r.name AS role_name
+             FROM users u
+             JOIN roles r ON r.id = u.role_id
+             WHERE u.is_approved = 1 AND u.role_id = 1 AND u.desk_id = ?
+             ORDER BY u.name ASC"
+        );
+        $stmt->execute([$deskId]);
         return $stmt->fetchAll();
     }
 

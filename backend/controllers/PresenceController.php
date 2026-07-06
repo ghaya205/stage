@@ -36,7 +36,14 @@ class PresenceController extends Controller {
         $userModel     = new User();
         $presenceModel = new Presence();
 
-        $users        = $userModel->getAllForPresence();
+        if ((int) $decoded->role_id === 2) {
+            $supervisor = $userModel->findById((int) $decoded->sub);
+            $deskId     = $supervisor['desk_id'] ?? null;
+            $users      = $deskId ? $userModel->getDeskAgentsForPresence((int) $deskId) : [];
+        } else {
+            $users = $userModel->getAllForPresence();
+        }
+
         $presentToday = $presenceModel->allForToday();
 
         $presentMap = [];

@@ -5,6 +5,7 @@ import {
   fetchFullProfile,
   fetchMyPresence,
   markPresence,
+  fetchMyQualifications,
   assetUrl,
 } from "../../services/api";
 import DashboardLayout from "../../layouts/DashboardLayout";
@@ -153,6 +154,44 @@ function PresenceCard({ token }) {
   );
 }
 
+function QualificationNames({ token }) {
+  const [qualifications, setQualifications] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchMyQualifications(token).then((data) => {
+      if (!cancelled) setQualifications(data.qualifications ?? []);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  if (qualifications.length === 0) {
+    return <div className="profile-view-value is-empty">Not provided</div>;
+  }
+
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+      {qualifications.map((q) => (
+        <span
+          key={q.id}
+          style={{
+            padding: "3px 10px",
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 600,
+            background: q.type === "diploma" ? "rgba(59,130,246,0.10)" : "rgba(217,119,6,0.10)",
+            color: q.type === "diploma" ? "#2563eb" : "#b45309",
+          }}
+        >
+          {q.name}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export default function ProfilePage() {
   const { user } = useAuth();
   const { token } = useAuth();
@@ -281,12 +320,9 @@ export default function ProfilePage() {
                 <InfoRow label="Shift" value={shiftLabel} />
                 <div />
               </div>
-              <div className="profile-field-row">
-                <InfoRow label="Diplomas" value={profile?.diplomas} />
-                <InfoRow
-                  label="Certifications"
-                  value={profile?.certifications}
-                />
+              <div className="profile-field">
+                <label>Diplomas &amp; Certifications</label>
+                <QualificationNames token={token} />
               </div>
               <InfoRow label="Skills" value={profile?.skills} />
               <div className="profile-field-row">

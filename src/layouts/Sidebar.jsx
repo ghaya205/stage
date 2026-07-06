@@ -1,6 +1,9 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Settings, LogOut, Shield, Users } from 'lucide-react';
+import {
+  LayoutDashboard, Settings, LogOut, Shield, Users, FileText,
+  Award, Briefcase, Folder, HeartPulse, User as UserIcon,
+} from 'lucide-react';
 import dxcLogo from '../assets/dxclogo.png';
 
 const roleMenus = {
@@ -8,12 +11,17 @@ const roleMenus = {
     {
       section: 'Workspace',
       items: [
-        { icon: LayoutDashboard, label: 'Dashboard', path: '/agent/dashboard' },
+        { icon: FileText,    label: 'Requests',       path: '/agent/requests' },
+        { icon: Award,       label: 'Qualifications',  path: '/agent/qualifications' },
+        { icon: Briefcase,   label: 'Opportunities',   path: '/agent/opportunities' },
+        { icon: Folder,      label: 'My Documents',    path: '/agent/documents' },
+        { icon: HeartPulse,  label: 'Insurance',       path: '/agent/insurance' },
       ],
     },
     {
       section: 'Account',
       items: [
+        { icon: UserIcon, label: 'Profile',  path: '/agent/profile' },
         { icon: Settings, label: 'Settings', path: '/agent/settings' },
       ],
     },
@@ -22,12 +30,18 @@ const roleMenus = {
     {
       section: 'Workspace',
       items: [
-        { icon: LayoutDashboard, label: 'Dashboard', path: '/supervisor/dashboard' },
+        { icon: LayoutDashboard, label: 'Team SLA Dashboard', path: '/supervisor/dashboard' },
+        { icon: FileText,    label: 'Requests',       path: '/supervisor/requests' },
+        { icon: Award,       label: 'Qualifications',  path: '/supervisor/qualifications' },
+        { icon: Briefcase,   label: 'Opportunities',   path: '/supervisor/opportunities' },
+        { icon: Folder,      label: 'My Documents',    path: '/supervisor/documents' },
+        { icon: HeartPulse,  label: 'Insurance',       path: '/supervisor/insurance' },
       ],
     },
     {
       section: 'Account',
       items: [
+        { icon: UserIcon, label: 'Profile',  path: '/supervisor/profile' },
         { icon: Settings, label: 'Settings', path: '/supervisor/settings' },
       ],
     },
@@ -36,7 +50,12 @@ const roleMenus = {
     {
       section: 'Workspace',
       items: [
-        { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
+        { icon: LayoutDashboard, label: 'SLA Dashboard', path: '/admin/dashboard' },
+        { icon: FileText,    label: 'Requests',       path: '/admin/requests' },
+        { icon: Award,       label: 'Qualifications',  path: '/admin/qualifications' },
+        { icon: Briefcase,   label: 'Opportunities',   path: '/admin/opportunities' },
+        { icon: Folder,      label: 'My Documents',    path: '/admin/documents' },
+        { icon: HeartPulse,  label: 'Insurance',       path: '/admin/insurance' },
       ],
     },
     {
@@ -44,6 +63,7 @@ const roleMenus = {
       items: [
         { icon: Users,  label: 'User Approvals', path: '/admin/user-approvals' },
         { icon: Shield, label: 'Management',     path: '/admin/management' },
+        { icon: UserIcon, label: 'Profile',      path: '/admin/profile' },
         { icon: Settings, label: 'Settings',     path: '/admin/settings' },
       ],
     },

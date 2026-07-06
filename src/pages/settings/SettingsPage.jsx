@@ -289,9 +289,6 @@ function ProfessionalTab({ profile, token, desks, onUpdated }) {
   const [form, setForm] = useState({
     title: profile?.title ?? '',
     desk_id: profile?.desk_id ?? '',
-    diplomas: profile?.diplomas ?? '',
-    certifications: profile?.certifications ?? '',
-    skills: profile?.skills ?? '',
     manager_name: profile?.manager_name ?? '',
     hr_manager_name: profile?.hr_manager_name ?? '',
     language: profile?.language ?? '',
@@ -347,26 +344,16 @@ function ProfessionalTab({ profile, token, desks, onUpdated }) {
           </div>
         </div>
 
-        <div className="profile-field-row">
-          <div className="profile-field">
-            <label>Diplomas</label>
-            <textarea className="profile-input" rows={2} value={form.diplomas} onChange={(e) => set('diplomas', e.target.value)} />
-          </div>
-          <div className="profile-field">
-            <label>Certifications</label>
-            <textarea className="profile-input" rows={2} value={form.certifications} onChange={(e) => set('certifications', e.target.value)} />
-          </div>
+        <div className="profile-readonly-note">
+          Diplomas, certifications and skills are now managed from the Qualifications page, where you can attach proof documents for review.
         </div>
 
         <div className="profile-field-row">
           <div className="profile-field">
-            <label>Skills</label>
-            <textarea className="profile-input" rows={2} value={form.skills} onChange={(e) => set('skills', e.target.value)} />
-          </div>
-          <div className="profile-field">
             <label>Language</label>
             <input className="profile-input" type="text" value={form.language} onChange={(e) => set('language', e.target.value)} placeholder="e.g. English, French" />
           </div>
+          <div />
         </div>
 
         <div className="profile-field-row">

@@ -184,3 +184,198 @@ export async function adminCreateUser(token, payload) {
   });
   return res.json();
 }
+
+export async function createRequest(token, payload) {
+  const res = await fetch(`${BASE}/requests/create`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+}
+
+export async function fetchMyRequests(token) {
+  const res = await fetch(`${BASE}/requests/mine`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function fetchAllRequests(token) {
+  const res = await fetch(`${BASE}/requests/all`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function replyRequest(token, payload) {
+  const res = await fetch(`${BASE}/requests/reply`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+}
+
+export async function fetchMyQualifications(token) {
+  const res = await fetch(`${BASE}/qualifications/mine`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function createQualification(token, formData) {
+  const res = await fetch(`${BASE}/qualifications/create`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+  return res.json();
+}
+
+export async function deleteQualification(token, id) {
+  const res = await fetch(`${BASE}/qualifications/delete`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ id }),
+  });
+  return res.json();
+}
+
+export async function fetchAllQualifications(token) {
+  const res = await fetch(`${BASE}/admin/qualifications`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function adminDeleteQualification(token, id) {
+  const res = await fetch(`${BASE}/admin/qualifications/delete`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ id }),
+  });
+  return res.json();
+}
+
+export async function approveQualification(token, id) {
+  const res = await fetch(`${BASE}/admin/qualifications/approve`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ id }),
+  });
+  return res.json();
+}
+
+export async function fetchMyDocuments(token) {
+  const res = await fetch(`${BASE}/documents/mine`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function uploadDocument(token, formData) {
+  const res = await fetch(`${BASE}/documents/upload`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+  return res.json();
+}
+
+export async function deleteDocument(token, id) {
+  const res = await fetch(`${BASE}/documents/delete`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ id }),
+  });
+  return res.json();
+}
+
+export async function fetchOpportunities(token, { search = "", category = "" } = {}) {
+  const params = new URLSearchParams();
+  if (search) params.set("search", search);
+  if (category) params.set("category", category);
+  const qs = params.toString();
+  const res = await fetch(`${BASE}/opportunities${qs ? `?${qs}` : ""}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function createOpportunity(token, payload) {
+  const res = await fetch(`${BASE}/opportunities/create`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+}
+
+export async function deleteOpportunity(token, id) {
+  const res = await fetch(`${BASE}/opportunities/delete`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ id }),
+  });
+  return res.json();
+}
+
+export async function createCareBulletin(token, formData) {
+  const res = await fetch(`${BASE}/insurance/create`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+  return res.json();
+}
+
+export async function fetchMyCareBulletins(token) {
+  const res = await fetch(`${BASE}/insurance/mine`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function fetchAllCareBulletins(token) {
+  const res = await fetch(`${BASE}/insurance/all`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function updateCareBulletinStatus(token, payload) {
+  const res = await fetch(`${BASE}/insurance/status`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+}

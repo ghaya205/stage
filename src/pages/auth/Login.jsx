@@ -37,8 +37,8 @@ export default function Login() {
       if (data.token) {
         const payload = JSON.parse(atob(data.token.split('.')[1]));
         login(data.token, { name: payload.name, email: payload.email, role_id: payload.role_id });
-        const roleRoutes = { 1: '/agent/dashboard', 2: '/supervisor/dashboard', 3: '/admin/dashboard' };
-        navigate(roleRoutes[payload.role_id] ?? '/agent/dashboard');
+        const roleRoutes = { 1: '/agent/requests', 2: '/supervisor/dashboard', 3: '/admin/dashboard' };
+        navigate(roleRoutes[payload.role_id] ?? '/agent/requests');
       } else if (data.error === 'pending_approval') {
         setErrorType('pending');
         setError(data.message || 'Your account is pending admin approval.');
