@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   fetchFullProfile,
@@ -11,7 +12,7 @@ import {
 import DashboardLayout from '../../layouts/DashboardLayout';
 import {
   Eye, EyeOff, CheckCircle, AlertCircle, User, Briefcase,
-  Camera, Lock, IdCard,
+  Camera, Lock, IdCard, Award,
 } from 'lucide-react';
 
 function getInitials(name) {
@@ -286,6 +287,9 @@ function PersonalTab({ profile, token, onUpdated }) {
 }
 
 function ProfessionalTab({ profile, token, desks, onUpdated }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const qualificationsPath = { 1: '/agent/qualifications', 2: '/supervisor/qualifications', 3: '/admin/qualifications' }[user?.role_id] ?? '/agent/qualifications';
   const [form, setForm] = useState({
     title: profile?.title ?? '',
     desk_id: profile?.desk_id ?? '',
@@ -344,8 +348,16 @@ function ProfessionalTab({ profile, token, desks, onUpdated }) {
           </div>
         </div>
 
-        <div className="profile-readonly-note">
-          Diplomas, certifications and skills are now managed from the Qualifications page, where you can attach proof documents for review.
+        <div className="profile-field">
+          <label>Diplomas &amp; Certifications</label>
+          <button
+            type="button"
+            className="profile-save-btn"
+            onClick={() => navigate(qualificationsPath)}
+            style={{ background: '#fff', color: 'var(--text-primary)', border: '1.5px solid var(--border)' }}
+          >
+            <Award size={14} /> Manage Qualifications
+          </button>
         </div>
 
         <div className="profile-field-row">
@@ -353,10 +365,6 @@ function ProfessionalTab({ profile, token, desks, onUpdated }) {
             <label>Language</label>
             <input className="profile-input" type="text" value={form.language} onChange={(e) => set('language', e.target.value)} placeholder="e.g. English, French" />
           </div>
-          <div />
-        </div>
-
-        <div className="profile-field-row">
           <div className="profile-field">
             <label>Shift</label>
             <select className="profile-input" value={form.shift} onChange={(e) => set('shift', e.target.value)}>
@@ -365,7 +373,6 @@ function ProfessionalTab({ profile, token, desks, onUpdated }) {
               <option value="nuit">Nuit (21:00 – 06:00)</option>
             </select>
           </div>
-          <div className="profile-field" />
         </div>
 
         <div className="profile-field-row">
