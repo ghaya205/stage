@@ -29,7 +29,7 @@
   border-radius: 999px;
   font-size: 12.5px;
   font-weight: 600;
-  background: rgba(124,58,237,0.10);
+  background: rgba(124, 58, 237, 0.1);
   color: #7c3aed;
 }
 .qual-skill-remove-btn {
@@ -39,17 +39,24 @@
   color: #7c3aed;
   font-weight: 800;
 }
-.qual-skills-empty { font-size: 12.5px; color: var(--text-secondary); }
+.qual-skills-empty {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
 
-.qual-skill-add-row { display: flex; gap: 8px; }
-.qual-add-btn { white-space: nowrap; }
+.qual-skill-add-row {
+  gap: 8px;
+}
+.qual-add-btn {
+  white-space: wrap;
+}
 
 .qual-status-badge {
   padding: 2px 9px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 700;
-  background: rgba(245,158,11,0.12);
+  background: rgba(245, 158, 11, 0.12);
   color: #b45309;
 }
 
@@ -61,8 +68,14 @@
   gap: 10px;
   margin-bottom: 4px;
 }
-.qual-card-title { margin-bottom: 0; }
-.qual-header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.qual-card-title {
+  margin-bottom: 0;
+}
+.qual-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 .qual-btn-outline {
   background: #fff;
   color: var(--text-primary);
@@ -105,12 +118,26 @@
   align-items: center;
   justify-content: center;
 }
-.qual-item-icon--diploma { background: rgba(37,99,235,0.10); }
-.qual-item-icon--cert { background: rgba(217,119,6,0.10); }
-.qual-item-body { flex: 1; }
-.qual-item-name { font-weight: 700; font-size: 14px; }
-.qual-item-institution { font-size: 12px; color: var(--text-secondary); }
-.qual-item-proof-link { font-size: 11.5px; }
+.qual-item-icon--diploma {
+  background: rgba(37, 99, 235, 0.1);
+}
+.qual-item-icon--cert {
+  background: rgba(217, 119, 6, 0.1);
+}
+.qual-item-body {
+  flex: 1;
+}
+.qual-item-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+.qual-item-institution {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.qual-item-proof-link {
+  font-size: 11.5px;
+}
 .qual-item-delete-btn {
   border: none;
   background: none;
