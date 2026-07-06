@@ -143,7 +143,7 @@ function AvatarCard({ profile, token, onUpdated }) {
           <Camera size={13} /> {busy ? 'Uploading…' : 'Change photo'}
           <input type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={handleFile} disabled={busy} />
         </label>
-        {err && <div className="profile-msg-err" style={{ marginTop: 10 }}><AlertCircle size={14} /> {err}</div>}
+        {err && <div className="profile-msg-err profile-msg-err--spaced"><AlertCircle size={14} /> {err}</div>}
       </div>
     </div>
   );
@@ -352,9 +352,8 @@ function ProfessionalTab({ profile, token, desks, onUpdated }) {
           <label>Diplomas &amp; Certifications</label>
           <button
             type="button"
-            className="profile-save-btn"
+            className="profile-save-btn profile-save-btn--outline"
             onClick={() => navigate(qualificationsPath)}
-            style={{ background: '#fff', color: 'var(--text-primary)', border: '1.5px solid var(--border)' }}
           >
             <Award size={14} /> Manage Qualifications
           </button>

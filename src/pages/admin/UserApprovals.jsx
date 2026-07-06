@@ -24,88 +24,29 @@ import {
   Moon,
   Sun,
 } from "lucide-react";
+import "./UserApprovals.css";
 
 const STATUS = { 0: "pending", 1: "approved", 2: "rejected" };
 
-const ROLE_COLORS = {
-  agent: {
-    bg: "rgba(59,130,246,0.10)",
-    color: "#2563eb",
-    border: "rgba(59,130,246,0.22)",
-  },
-  supervisor: {
-    bg: "rgba(139,92,246,0.10)",
-    color: "#7c3aed",
-    border: "rgba(139,92,246,0.22)",
-  },
-};
-
 function RolePill({ name }) {
-  const s = ROLE_COLORS[name] ?? {
-    bg: "#f3f4f8",
-    color: "#6b7280",
-    border: "#e5e7eb",
-  };
-  return (
-    <span
-      style={{
-        display: "inline-block",
-        padding: "2px 10px",
-        borderRadius: "999px",
-        fontSize: "11px",
-        fontWeight: 700,
-        letterSpacing: "0.04em",
-        textTransform: "capitalize",
-        background: s.bg,
-        color: s.color,
-        border: `1px solid ${s.border}`,
-      }}
-    >
-      {name}
-    </span>
-  );
+  const className =
+    name === "agent"
+      ? "role-pill--agent"
+      : name === "supervisor"
+        ? "role-pill--supervisor"
+        : "role-pill--default";
+  return <span className={`role-pill ${className}`}>{name}</span>;
 }
 
 function StatusPill({ status }) {
   const map = {
-    pending: {
-      bg: "rgba(245,158,11,0.10)",
-      color: "#d97706",
-      border: "rgba(245,158,11,0.25)",
-      icon: <Clock size={11} />,
-      label: "Pending",
-    },
-    approved: {
-      bg: "rgba(16,185,129,0.10)",
-      color: "#059669",
-      border: "rgba(16,185,129,0.25)",
-      icon: <CheckCircle2 size={11} />,
-      label: "Approved",
-    },
-    rejected: {
-      bg: "rgba(239,68,68,0.10)",
-      color: "#dc2626",
-      border: "rgba(239,68,68,0.25)",
-      icon: <XCircle size={11} />,
-      label: "Rejected",
-    },
+    pending: { className: "ua-status-pill--pending", icon: <Clock size={11} />, label: "Pending" },
+    approved: { className: "ua-status-pill--approved", icon: <CheckCircle2 size={11} />, label: "Approved" },
+    rejected: { className: "ua-status-pill--rejected", icon: <XCircle size={11} />, label: "Rejected" },
   };
   const s = map[status] ?? map.pending;
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "4px",
-        padding: "2px 10px",
-        borderRadius: "999px",
-        fontSize: "11px",
-        fontWeight: 700,
-        background: s.bg,
-        color: s.color,
-        border: `1px solid ${s.border}`,
-      }}
-    >
+    <span className={`ua-status-pill ${s.className}`}>
       {s.icon} {s.label}
     </span>
   );
@@ -113,49 +54,13 @@ function StatusPill({ status }) {
 
 function StatCard({ icon, label, value, color }) {
   return (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: "var(--radius)",
-        padding: "20px 22px",
-        boxShadow: "var(--shadow-sm)",
-        display: "flex",
-        alignItems: "center",
-        gap: "16px",
-        flex: 1,
-        minWidth: 0,
-      }}
-    >
-      <div
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: "10px",
-          background: color + "18",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
-        <span style={{ color }}>{icon}</span>
+    <div className="stat-card">
+      <div className="stat-card-icon-wrap" style={{ '--icon-bg': color + "18" }}>
+        <span className="stat-card-icon" style={{ '--icon-color': color }}>{icon}</span>
       </div>
       <div>
-        <div
-          style={{
-            fontSize: 22,
-            fontWeight: 800,
-            color: "var(--text-primary)",
-            lineHeight: 1,
-          }}
-        >
-          {value}
-        </div>
-        <div
-          style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}
-        >
-          {label}
-        </div>
+        <div className="stat-card-value">{value}</div>
+        <div className="stat-card-label">{label}</div>
       </div>
     </div>
   );
@@ -163,24 +68,11 @@ function StatCard({ icon, label, value, color }) {
 
 function ShiftPill({ shift }) {
   if (!shift) {
-    return <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>—</span>;
+    return <span className="ua-shift-empty">—</span>;
   }
   const isNight = shift === "nuit";
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 4,
-        padding: "2px 10px",
-        borderRadius: "999px",
-        fontSize: "11px",
-        fontWeight: 700,
-        background: isNight ? "rgba(99,102,241,0.10)" : "rgba(245,158,11,0.10)",
-        color: isNight ? "#6366f1" : "#d97706",
-        border: `1px solid ${isNight ? "rgba(99,102,241,0.22)" : "rgba(245,158,11,0.25)"}`,
-      }}
-    >
+    <span className={`ua-shift-pill ${isNight ? "ua-shift-pill--night" : "ua-shift-pill--day"}`}>
       {isNight ? <Moon size={11} /> : <Sun size={11} />}
       {isNight ? "Nuit" : "Matin"}
     </span>
@@ -189,20 +81,7 @@ function ShiftPill({ shift }) {
 
 function PresenceStatusPill({ isPresent }) {
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 4,
-        padding: "2px 10px",
-        borderRadius: "999px",
-        fontSize: "11px",
-        fontWeight: 700,
-        background: isPresent ? "rgba(16,185,129,0.10)" : "rgba(107,114,128,0.10)",
-        color: isPresent ? "#059669" : "#6b7280",
-        border: `1px solid ${isPresent ? "rgba(16,185,129,0.25)" : "rgba(107,114,128,0.20)"}`,
-      }}
-    >
+    <span className={`ua-presence-pill ${isPresent ? "ua-presence-pill--present" : "ua-presence-pill--absent"}`}>
       {isPresent ? <CheckCircle2 size={11} /> : <Clock size={11} />}
       {isPresent ? "Present" : "Not marked"}
     </span>
@@ -263,117 +142,40 @@ function PresenceSection({ token }) {
       : "—";
 
   return (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: "var(--radius)",
-        boxShadow: "var(--shadow-sm)",
-        overflow: "hidden",
-        marginBottom: 24,
-      }}
-    >
-      <div
-        style={{
-          padding: "16px 20px",
-          borderBottom: "1px solid var(--border)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 12,
-        }}
-      >
+    <div className="ua-panel ua-panel--spaced">
+      <div className="ua-panel-header">
         <div>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: 16,
-              fontWeight: 800,
-              color: "var(--text-primary)",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <CalendarCheck size={17} style={{ color: "var(--dxc-coral)" }} />
+          <h2 className="ua-panel-title">
+            <CalendarCheck size={17} className="ua-page-title-icon" />
             Today's Presence
           </h2>
-          <p style={{ margin: "3px 0 0", fontSize: 12.5, color: "var(--text-secondary)" }}>
+          <p className="ua-panel-subtitle">
             {presentCount} of {users.length} checked in today
           </p>
         </div>
-        <button
-          onClick={load}
-          disabled={loading}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "7px 14px",
-            borderRadius: "8px",
-            border: "1.5px solid var(--border)",
-            background: "#fff",
-            cursor: "pointer",
-            fontSize: 12.5,
-            fontWeight: 600,
-            color: "var(--text-secondary)",
-            fontFamily: "Inter,sans-serif",
-          }}
-        >
-          <RefreshCw size={13} style={{ animation: loading ? "spin 1s linear infinite" : "none" }} />
+        <button onClick={load} disabled={loading} className="ua-panel-refresh-btn">
+          <RefreshCw size={13} className={loading ? "ua-spin-icon" : ""} />
           Refresh
         </button>
       </div>
 
       {error && (
-        <div
-          style={{
-            padding: "14px 20px",
-            background: "#fef2f2",
-            color: "#dc2626",
-            fontSize: 13,
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
+        <div className="ua-error-banner">
           <AlertCircle size={14} /> {error}
         </div>
       )}
 
       {loading ? (
-        <div
-          style={{
-            height: 56 * pageSize,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "var(--text-secondary)",
-            fontSize: 13,
-          }}
-        >
+        <div className="ua-loading-row" style={{ height: 56 * pageSize }}>
           Loading presence…
         </div>
       ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <div className="ua-table-wrap">
+          <table className="ua-table">
             <thead>
-              <tr style={{ background: "#f9fafb", borderBottom: "1px solid var(--border)" }}>
+              <tr>
                 {["Name", "Role", "Shift", "Status", "Since"].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      padding: "10px 16px",
-                      textAlign: "left",
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.06em",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    {h}
-                  </th>
+                  <th key={h}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -383,44 +185,26 @@ function PresenceSection({ token }) {
                 return (
                   <tr
                     key={u.id}
-                    className="ua-row"
-                    style={{
-                      height: 56,
-                      borderBottom: isLast && users.length >= pageSize ? "none" : "1px solid var(--border)",
-                    }}
+                    className={`ua-row ua-row-h56${isLast && users.length >= pageSize ? "" : " ua-row-bordered"}`}
                   >
-                    <td style={{ padding: "13px 16px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: "50%",
-                            background: "linear-gradient(135deg,#E8643A,#7B8FD4)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "#fff",
-                            fontSize: 12,
-                            fontWeight: 700,
-                            flexShrink: 0,
-                          }}
-                        >
+                    <td>
+                      <div className="ua-name-cell">
+                        <div className="ua-avatar">
                           {u.name.split(" ").map((p) => p[0]).join("").toUpperCase().slice(0, 2)}
                         </div>
-                        <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{u.name}</span>
+                        <span className="ua-agent-name">{u.name}</span>
                       </div>
                     </td>
-                    <td style={{ padding: "13px 16px" }}>
+                    <td>
                       <RolePill name={u.role_name} />
                     </td>
-                    <td style={{ padding: "13px 16px" }}>
+                    <td>
                       <ShiftPill shift={u.shift} />
                     </td>
-                    <td style={{ padding: "13px 16px" }}>
+                    <td>
                       <PresenceStatusPill isPresent={u.is_present} />
                     </td>
-                    <td style={{ padding: "13px 16px", color: "var(--text-secondary)" }}>
+                    <td className="ua-cell-muted">
                       {fmtTime(u.marked_at)}
                     </td>
                   </tr>
@@ -428,9 +212,9 @@ function PresenceSection({ token }) {
               })}
               {paginated.length === 0 && (
                 <tr style={{ height: 56 * pageSize }}>
-                  <td colSpan={5} style={{ textAlign: "center" }}>
-                    <Users size={32} style={{ opacity: 0.18, marginBottom: 8 }} />
-                    <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+                  <td colSpan={5} className="ua-empty-cell">
+                    <Users size={32} className="ua-empty-icon" />
+                    <p className="ua-empty-title">
                       No users found
                     </p>
                   </td>
@@ -439,7 +223,7 @@ function PresenceSection({ token }) {
               {paginated.length > 0 &&
                 paginated.length < pageSize &&
                 Array.from({ length: pageSize - paginated.length }).map((_, idx) => (
-                  <tr key={`presence-filler-${idx}`} style={{ height: 56 }}>
+                  <tr key={`presence-filler-${idx}`} className="ua-row-h56">
                     <td colSpan={5} />
                   </tr>
                 ))}
@@ -449,22 +233,12 @@ function PresenceSection({ token }) {
       )}
 
       {!loading && users.length > 0 && (
-        <div
-          style={{
-            padding: "12px 20px",
-            borderTop: "1px solid var(--border)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 12,
-          }}
-        >
-          <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+        <div className="ua-pagination-bar">
+          <div className="ua-pagination-info">
             Showing {(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, users.length)} of{" "}
             {users.length} user{users.length !== 1 ? "s" : ""}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="ua-pagination-controls">
             <button
               className="page-btn"
               disabled={safePage <= 1}
@@ -472,7 +246,7 @@ function PresenceSection({ token }) {
             >
               <ChevronLeft size={14} />
             </button>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", minWidth: 60, textAlign: "center" }}>
+            <span className="ua-pagination-page">
               Page {safePage} of {totalPages}
             </span>
             <button
@@ -622,109 +396,28 @@ export default function UserApprovals() {
     <DashboardLayout pageTitle="User Approvals">
 
       {toast && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: 28,
-            right: 28,
-            zIndex: 9999,
-            background: "#1c1e2e",
-            color: "#fff",
-            padding: "12px 20px",
-            borderRadius: "10px",
-            fontSize: "13.5px",
-            fontWeight: 500,
-            boxShadow: "0 8px 30px rgba(0,0,0,0.22)",
-            animation: "fadeInUp .2s ease",
-          }}
-        >
+        <div className="ua-toast">
           {toast}
         </div>
       )}
 
-      <style>{`
-        @keyframes fadeInUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .ua-row:hover td { background: #f9fafb !important; }
-        .filter-tab { border:none; background:none; cursor:pointer; font-family:Inter,sans-serif; font-size:13px; font-weight:600; padding:7px 16px; border-radius:8px; color:var(--text-secondary); transition:all .18s; }
-        .filter-tab.active { background:#fff; color:var(--text-primary); box-shadow:0 1px 4px rgba(0,0,0,.10); }
-        .filter-tab:hover:not(.active) { color:var(--text-primary); }
-        .act-btn { border:none; border-radius:7px; padding:6px 13px; font-size:12px; font-weight:700; font-family:Inter,sans-serif; cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:opacity .15s,transform .15s; }
-        .act-btn:hover:not(:disabled) { opacity:.82; transform:translateY(-1px); }
-        .act-btn:disabled { opacity:.4; cursor:not-allowed; }
-        .act-btn.approve { background:rgba(16,185,129,0.12); color:#059669; }
-        .act-btn.reject  { background:rgba(239,68,68,0.10);  color:#dc2626; }
-        .page-btn { border:1.5px solid var(--border); background:#fff; cursor:pointer; border-radius:8px; padding:6px 10px; display:flex; align-items:center; justify-content:center; transition:all .15s; color:var(--text-secondary); }
-        .page-btn:hover:not(:disabled) { background:#f9fafb; color:var(--text-primary); }
-        .page-btn:disabled { opacity:.4; cursor:not-allowed; }
-      `}</style>
-
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 12,
-          marginBottom: 24,
-        }}
-      >
+      <div className="ua-page-header">
         <div>
-          <h1
-            style={{
-              margin: 0,
-              fontSize: 20,
-              fontWeight: 800,
-              color: "var(--text-primary)",
-              display: "flex",
-              alignItems: "center",
-              gap: 9,
-            }}
-          >
-            <ShieldCheck size={22} style={{ color: "var(--dxc-coral)" }} />
+          <h1 className="ua-page-title">
+            <ShieldCheck size={22} className="ua-page-title-icon" />
             User Approvals
           </h1>
-          <p
-            style={{
-              margin: "4px 0 0",
-              fontSize: 13,
-              color: "var(--text-secondary)",
-            }}
-          >
+          <p className="ua-page-subtitle">
             Review and approve agent &amp; supervisor registrations
           </p>
         </div>
-        <button
-          onClick={load}
-          disabled={loading}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "8px 16px",
-            borderRadius: "8px",
-            border: "1.5px solid var(--border)",
-            background: "#fff",
-            cursor: "pointer",
-            fontSize: 13,
-            fontWeight: 600,
-            color: "var(--text-secondary)",
-            fontFamily: "Inter,sans-serif",
-            transition: "all .18s",
-          }}
-        >
-          <RefreshCw
-            size={14}
-            style={{ animation: loading ? "spin 1s linear infinite" : "none" }}
-          />
+        <button onClick={load} disabled={loading} className="ua-refresh-btn">
+          <RefreshCw size={14} className={loading ? "ua-spin-icon" : ""} />
           Refresh
         </button>
       </div>
 
-      <div
-        style={{ display: "flex", gap: 14, marginBottom: 24, flexWrap: "wrap" }}
-      >
+      <div className="stat-cards-row">
         <StatCard
           icon={<Users size={20} />}
           label="Total Users"
@@ -753,35 +446,10 @@ export default function UserApprovals() {
 
       <PresenceSection token={token} />
 
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: "var(--radius)",
-          boxShadow: "var(--shadow-sm)",
-          overflow: "hidden",
-        }}
-      >
+      <div className="ua-panel">
 
-        <div
-          style={{
-            padding: "16px 20px",
-            borderBottom: "1px solid var(--border)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 12,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              gap: 4,
-              background: "var(--bg-page)",
-              padding: "4px",
-              borderRadius: "10px",
-            }}
-          >
+        <div className="ua-panel-header">
+          <div className="ua-filters-row">
             {["all", "pending", "approved", "rejected"].map((f) => (
               <button
                 key={f}
@@ -793,38 +461,15 @@ export default function UserApprovals() {
               >
                 {f.charAt(0).toUpperCase() + f.slice(1)}
                 {f === "pending" && pendingCount > 0 && (
-                  <span
-                    style={{
-                      marginLeft: 5,
-                      background: "#f59e0b",
-                      color: "#fff",
-                      borderRadius: "999px",
-                      padding: "1px 6px",
-                      fontSize: "10px",
-                      fontWeight: 800,
-                    }}
-                  >
+                  <span className="ua-pending-badge">
                     {pendingCount}
                   </span>
                 )}
               </button>
             ))}
           </div>
-          <div
-            style={{
-              position: "relative",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Search
-              size={14}
-              style={{
-                position: "absolute",
-                left: 10,
-                color: "var(--text-secondary)",
-              }}
-            />
+          <div className="ua-search-wrap">
+            <Search size={14} className="ua-search-icon" />
             <input
               value={search}
               onChange={(e) => {
@@ -832,67 +477,26 @@ export default function UserApprovals() {
                 setPage(1);
               }}
               placeholder="Search name, email, role…"
-              style={{
-                paddingLeft: 32,
-                paddingRight: 12,
-                paddingTop: 7,
-                paddingBottom: 7,
-                border: "1.5px solid var(--border)",
-                borderRadius: 8,
-                fontSize: 13,
-                fontFamily: "Inter,sans-serif",
-                outline: "none",
-                width: 220,
-              }}
+              className="ua-search-input"
             />
           </div>
         </div>
 
         {error && (
-          <div
-            style={{
-              padding: "14px 20px",
-              background: "#fef2f2",
-              color: "#dc2626",
-              fontSize: 13,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
+          <div className="ua-error-banner">
             <AlertCircle size={14} /> {error}
           </div>
         )}
 
         {loading ? (
-          <div
-            style={{
-              height: 56 * pageSize,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "var(--text-secondary)",
-              fontSize: 13,
-            }}
-          >
+          <div className="ua-loading-row" style={{ height: 56 * pageSize }}>
             Loading users…
           </div>
         ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: 13,
-              }}
-            >
+          <div className="ua-table-wrap">
+            <table className="ua-table">
               <thead>
-                <tr
-                  style={{
-                    background: "#f9fafb",
-                    borderBottom: "1px solid var(--border)",
-                  }}
-                >
+                <tr>
 
                   {[
                     "Name",
@@ -902,18 +506,7 @@ export default function UserApprovals() {
                     "Status",
                     "Actions",
                   ].map((h) => (
-                    <th
-                      key={h}
-                      style={{
-                        padding: "10px 16px",
-                        textAlign: "left",
-                        fontSize: "11px",
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.06em",
-                        color: "var(--text-secondary)",
-                      }}
-                    >
+                    <th key={h}>
                       {h}
                     </th>
                   ))}
@@ -927,38 +520,11 @@ export default function UserApprovals() {
                   return (
                     <tr
                       key={u.id}
-                      className="ua-row"
-                      style={{
-                        height: 56,
-                        borderBottom: isLast && filtered.length >= pageSize
-                          ? "none"
-                          : "1px solid var(--border)",
-                      }}
+                      className={`ua-row ua-row-h56${isLast && filtered.length >= pageSize ? "" : " ua-row-bordered"}`}
                     >
-                      <td style={{ padding: "13px 16px" }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: "50%",
-                              background:
-                                "linear-gradient(135deg,#E8643A,#7B8FD4)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              color: "#fff",
-                              fontSize: 12,
-                              fontWeight: 700,
-                              flexShrink: 0,
-                            }}
-                          >
+                      <td>
+                        <div className="ua-name-cell">
+                          <div className="ua-avatar">
                             {u.name
                               .split(" ")
                               .map((p) => p[0])
@@ -966,41 +532,26 @@ export default function UserApprovals() {
                               .toUpperCase()
                               .slice(0, 2)}
                           </div>
-                          <span
-                            style={{
-                              fontWeight: 600,
-                              color: "var(--text-primary)",
-                            }}
-                          >
+                          <span className="ua-agent-name">
                             {u.name}
                           </span>
                         </div>
                       </td>
-                      <td
-                        style={{
-                          padding: "13px 16px",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
+                      <td className="ua-cell-muted">
                         {u.email}
                       </td>
-                      <td style={{ padding: "13px 16px" }}>
+                      <td>
                         <RolePill name={u.role_name} />
                       </td>
 
-                      <td
-                        style={{
-                          padding: "13px 16px",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
+                      <td className="ua-cell-muted">
                         {fmtDate(u.created_at)}
                       </td>
-                      <td style={{ padding: "13px 16px" }}>
+                      <td>
                         <StatusPill status={status} />
                       </td>
-                      <td style={{ padding: "13px 16px" }}>
-                        <div style={{ display: "flex", gap: 7 }}>
+                      <td>
+                        <div className="ua-actions-cell">
                           {status !== "approved" && (
                             <button
                               className="act-btn approve"
@@ -1027,28 +578,15 @@ export default function UserApprovals() {
                 })}
                 {paginated.length === 0 && (
                   <tr style={{ height: 56 * pageSize }}>
-                    <td colSpan={6} style={{ textAlign: "center" }}>
+                    <td colSpan={6} className="ua-empty-cell">
                       <Users
                         size={32}
-                        style={{ opacity: 0.18, marginBottom: 8 }}
+                        className="ua-empty-icon"
                       />
-                      <p
-                        style={{
-                          margin: 0,
-                          fontSize: 14,
-                          fontWeight: 600,
-                          color: "var(--text-primary)",
-                        }}
-                      >
+                      <p className="ua-empty-title">
                         No users found
                       </p>
-                      <p
-                        style={{
-                          margin: "4px 0 0",
-                          fontSize: 13,
-                          color: "var(--text-secondary)",
-                        }}
-                      >
+                      <p className="ua-empty-hint">
                         {filter === "pending"
                           ? "No pending registrations at the moment."
                           : "Try adjusting your filter or search."}
@@ -1060,7 +598,7 @@ export default function UserApprovals() {
                   paginated.length < pageSize &&
                   Array.from({ length: pageSize - paginated.length }).map(
                     (_, idx) => (
-                      <tr key={`filler-${idx}`} style={{ height: 56 }}>
+                      <tr key={`filler-${idx}`} className="ua-row-h56">
                         <td colSpan={6} />
                       </tr>
                     ),
@@ -1071,25 +609,13 @@ export default function UserApprovals() {
         )}
 
         {!loading && filtered.length > 0 && (
-          <div
-            style={{
-              padding: "12px 20px",
-              borderTop: "1px solid var(--border)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: 12,
-            }}
-          >
-            <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+          <div className="ua-pagination-bar">
+            <div className="ua-pagination-info">
               Showing {(safePage - 1) * pageSize + 1}–
               {Math.min(safePage * pageSize, filtered.length)} of{" "}
               {filtered.length} user{filtered.length !== 1 ? "s" : ""}
             </div>
-            <div
-              style={{ display: "flex", alignItems: "center", gap: 8 }}
-            >
+            <div className="ua-pagination-controls">
               <button
                 className="page-btn"
                 disabled={safePage <= 1}
@@ -1097,15 +623,7 @@ export default function UserApprovals() {
               >
                 <ChevronLeft size={14} />
               </button>
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "var(--text-primary)",
-                  minWidth: 60,
-                  textAlign: "center",
-                }}
-              >
+              <span className="ua-pagination-page">
                 Page {safePage} of {totalPages}
               </span>
               <button

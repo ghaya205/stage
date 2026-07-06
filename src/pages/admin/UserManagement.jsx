@@ -73,16 +73,16 @@ function CertificationReview() {
     <div className="profile-card">
       <div className="profile-card-title">Diplomas &amp; Certifications</div>
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Loading…</div>
+        <div className="mgmt-state-msg">Loading…</div>
       ) : qualifications.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>No qualifications submitted yet.</div>
+        <div className="mgmt-state-msg">No qualifications submitted yet.</div>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="mgmt-table-wrap">
+          <table className="mgmt-table">
             <thead>
-              <tr style={{ background: '#f9fafb', borderBottom: '1px solid var(--border)' }}>
+              <tr>
                 {['User', 'Type', 'Name', 'Institution', 'Proof', 'Status', 'Actions'].map((h) => (
-                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>{h}</th>
+                  <th key={h}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -90,31 +90,27 @@ function CertificationReview() {
               {qualifications.map((q) => {
                 const Icon = q.type === 'diploma' ? GraduationCap : Award;
                 return (
-                  <tr key={q.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <td style={{ padding: '12px 14px' }}>{q.user_name}<div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{q.user_email}</div></td>
-                    <td style={{ padding: '12px 14px' }}><Icon size={14} style={{ marginRight: 4, verticalAlign: -2 }} />{q.type}</td>
-                    <td style={{ padding: '12px 14px', fontWeight: 600 }}>{q.name}</td>
-                    <td style={{ padding: '12px 14px', color: 'var(--text-secondary)' }}>{q.institution ?? '—'}</td>
-                    <td style={{ padding: '12px 14px' }}>
+                  <tr key={q.id}>
+                    <td>{q.user_name}<div className="mgmt-sub-email">{q.user_email}</div></td>
+                    <td><Icon size={14} className="mgmt-type-icon" />{q.type}</td>
+                    <td className="mgmt-cell-strong">{q.name}</td>
+                    <td className="mgmt-cell-muted">{q.institution ?? '—'}</td>
+                    <td>
                       {q.proof_path ? (
                         <a href={assetUrl(q.proof_path)} target="_blank" rel="noreferrer">View</a>
                       ) : '—'}
                     </td>
-                    <td style={{ padding: '12px 14px' }}>
-                      <span style={{
-                        padding: '2px 9px', borderRadius: 999, fontSize: 11, fontWeight: 700,
-                        background: q.status === 'approved' ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
-                        color: q.status === 'approved' ? '#059669' : '#b45309',
-                      }}>{q.status}</span>
+                    <td>
+                      <span className={`mgmt-status-pill ${q.status === 'approved' ? 'mgmt-status-pill--approved' : 'mgmt-status-pill--pending'}`}>{q.status}</span>
                     </td>
-                    <td style={{ padding: '12px 14px' }}>
-                      <div style={{ display: 'flex', gap: 6 }}>
+                    <td>
+                      <div className="mgmt-action-group">
                         {q.status !== 'approved' && (
-                          <button onClick={() => handleApprove(q.id)} style={{ padding: '5px 10px', borderRadius: 6, border: 'none', background: '#059669', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                          <button onClick={() => handleApprove(q.id)} className="mgmt-action-btn mgmt-action-btn--approve">
                             <Check size={12} />
                           </button>
                         )}
-                        <button onClick={() => handleDelete(q.id)} style={{ padding: '5px 10px', borderRadius: 6, border: 'none', background: '#dc2626', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                        <button onClick={() => handleDelete(q.id)} className="mgmt-action-btn mgmt-action-btn--delete">
                           <Trash2 size={12} />
                         </button>
                       </div>
@@ -452,7 +448,7 @@ function DeskManagement() {
       </div>
 
       {mode === 'update' && (
-        <div className="profile-field" style={{ marginBottom: 20 }}>
+        <div className="profile-field mgmt-field-spaced">
           <label>Select Desk</label>
           <select className="profile-input" value={selectedId} onChange={(e) => handleSelectExisting(e.target.value)}>
             <option value="">-- Select a desk --</option>

@@ -10,12 +10,13 @@ import {
 import {
   GraduationCap, Award, Plus, Trash2, Upload, AlertCircle, CheckCircle2,
 } from 'lucide-react';
+import './QualificationsPage.css';
 
 export default function QualificationsPage() {
   const { token } = useAuth();
   return (
     <DashboardLayout pageTitle="Qualifications">
-      <div className="profile-page" style={{ display: 'grid', gridTemplateColumns: '280px minmax(0, 1fr)', gap: 20, alignItems: 'start' }}>
+      <div className="profile-page qual-page-grid">
         <CoreSkillsCard token={token} />
         <QualificationsCard token={token} />
       </div>
@@ -70,38 +71,31 @@ function CoreSkillsCard({ token }) {
   return (
     <div className="profile-card">
       <div className="profile-card-title">Core Skills</div>
-      <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', marginTop: -6, marginBottom: 14 }}>
+      <p className="qual-skills-hint">
         Add your technical and soft skills to improve your internal visibility.
       </p>
 
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Loading…</div>
+        <div className="qual-state-msg">Loading…</div>
       ) : (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+        <div className="qual-skills-list">
           {skills.map((skill) => (
-            <span
-              key={skill}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 10px',
-                borderRadius: 999, fontSize: 12.5, fontWeight: 600,
-                background: 'rgba(124,58,237,0.10)', color: '#7c3aed',
-              }}
-            >
+            <span key={skill} className="qual-skill-pill">
               {skill}
               <button
                 type="button"
                 onClick={() => removeSkill(skill)}
-                style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#7c3aed', fontWeight: 800 }}
+                className="qual-skill-remove-btn"
               >×</button>
             </span>
           ))}
           {skills.length === 0 && (
-            <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>No skills added yet.</span>
+            <span className="qual-skills-empty">No skills added yet.</span>
           )}
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div className="qual-skill-add-row">
         <input
           className="profile-input"
           type="text"
@@ -112,10 +106,9 @@ function CoreSkillsCard({ token }) {
         />
         <button
           type="button"
-          className="profile-save-btn"
+          className="profile-save-btn qual-add-btn"
           onClick={addSkill}
           disabled={saving}
-          style={{ whiteSpace: 'nowrap' }}
         >
           Add
         </button>
@@ -127,10 +120,7 @@ function CoreSkillsCard({ token }) {
 function StatusBadge({ status }) {
   if (status !== 'pending') return null;
   return (
-    <span style={{
-      padding: '2px 9px', borderRadius: 999, fontSize: 11, fontWeight: 700,
-      background: 'rgba(245,158,11,0.12)', color: '#b45309',
-    }}>
+    <span className="qual-status-badge">
       Pending
     </span>
   );
@@ -203,14 +193,13 @@ function QualificationsCard({ token }) {
 
   return (
     <div className="profile-card">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 4 }}>
-        <div className="profile-card-title" style={{ marginBottom: 0 }}>Qualifications</div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <div className="qual-card-header">
+        <div className="profile-card-title qual-card-title">Qualifications</div>
+        <div className="qual-header-actions">
           <button
             type="button"
-            className="profile-save-btn"
+            className="profile-save-btn qual-btn-outline"
             onClick={() => navigate(documentsPath)}
-            style={{ background: '#fff', color: 'var(--text-primary)', border: '1.5px solid var(--border)' }}
           >
             CV &amp; Video
           </button>
@@ -224,7 +213,7 @@ function QualificationsCard({ token }) {
       {err && <div className="profile-msg-err"><AlertCircle size={14} /> {err}</div>}
 
       {showForm && (
-        <form onSubmit={handleSubmit} style={{ margin: '14px 0', padding: 16, border: '1px solid var(--border)', borderRadius: 10 }}>
+        <form onSubmit={handleSubmit} className="qual-add-form">
           <div className="profile-field-row">
             <div className="profile-field">
               <label>Type</label>
@@ -255,35 +244,25 @@ function QualificationsCard({ token }) {
       )}
 
       {loading ? (
-        <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>Loading…</div>
+        <div className="qual-empty-state">Loading…</div>
       ) : qualifications.length === 0 ? (
-        <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>No qualifications added yet.</div>
+        <div className="qual-empty-state">No qualifications added yet.</div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+        <div className="qual-list">
           {qualifications.map((q) => {
             const Icon = q.type === 'diploma' ? GraduationCap : Award;
             return (
-              <div
-                key={q.id}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px',
-                  border: '1px solid var(--border)', borderRadius: 10,
-                }}
-              >
-                <div style={{
-                  width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-                  background: q.type === 'diploma' ? 'rgba(37,99,235,0.10)' : 'rgba(217,119,6,0.10)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
+              <div key={q.id} className="qual-item">
+                <div className={`qual-item-icon ${q.type === 'diploma' ? 'qual-item-icon--diploma' : 'qual-item-icon--cert'}`}>
                   <Icon size={18} color={q.type === 'diploma' ? '#2563eb' : '#b45309'} />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{q.name}</div>
+                <div className="qual-item-body">
+                  <div className="qual-item-name">{q.name}</div>
                   {q.institution && (
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{q.institution}</div>
+                    <div className="qual-item-institution">{q.institution}</div>
                   )}
                   {q.proof_path && (
-                    <a href={assetUrl(q.proof_path)} target="_blank" rel="noreferrer" style={{ fontSize: 11.5 }}>
+                    <a href={assetUrl(q.proof_path)} target="_blank" rel="noreferrer" className="qual-item-proof-link">
                       View proof
                     </a>
                   )}
@@ -292,7 +271,7 @@ function QualificationsCard({ token }) {
                 <button
                   type="button"
                   onClick={() => handleDelete(q.id)}
-                  style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#dc2626' }}
+                  className="qual-item-delete-btn"
                 >
                   <Trash2 size={16} />
                 </button>

@@ -1,0 +1,99 @@
+.docs-file-input { display: none; }
+
+.docs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.docs-header-title {
+  font-size: 18px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.docs-section { margin-top: 22px; }
+.docs-section--other { margin-top: 26px; }
+.docs-section-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #b45309;
+  margin-bottom: 10px;
+}
+.docs-loading-text,
+.docs-empty-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.docs-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.docs-upload-placeholder {
+  width: 160px;
+  height: 110px;
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  background: #fafafa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.docs-upload-placeholder__icon { margin-right: 6px; }
+
+.doc-card {
+  width: 160px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-align: center;
+}
+.doc-card__icon {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 10px;
+  border-radius: 8px;
+  background: rgba(124,58,237,0.10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.doc-card__label { font-weight: 700; font-size: 13px; }
+.doc-card__filename {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  word-break: break-all;
+  margin-top: 2px;
+}
+.doc-card__actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.doc-card__action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  background: transparent;
+  cursor: pointer;
+}
+.doc-card__action-btn--delete {
+  border: 1px solid rgba(220,38,38,0.3);
+  background: rgba(220,38,38,0.06);
+  color: #dc2626;
+}

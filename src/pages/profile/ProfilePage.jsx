@@ -117,7 +117,7 @@ function PresenceCard({ token }) {
   return (
     <div className="profile-card presence-card">
       <div className="profile-card-title">
-        <CalendarCheck size={13} style={{ marginRight: 6, verticalAlign: -2 }} />
+        <CalendarCheck size={13} className="icon-inline" />
         Today's Presence
       </div>
 
@@ -172,18 +172,11 @@ function QualificationNames({ token }) {
   }
 
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+    <div className="profile-qual-list">
       {qualifications.map((q) => (
         <span
           key={q.id}
-          style={{
-            padding: "3px 10px",
-            borderRadius: 999,
-            fontSize: 12,
-            fontWeight: 600,
-            background: q.type === "diploma" ? "rgba(59,130,246,0.10)" : "rgba(217,119,6,0.10)",
-            color: q.type === "diploma" ? "#2563eb" : "#b45309",
-          }}
+          className={`profile-qual-pill ${q.type === "diploma" ? "profile-qual-pill--diploma" : "profile-qual-pill--cert"}`}
         >
           {q.name}
         </span>
@@ -277,7 +270,7 @@ export default function ProfilePage() {
           <div className="profile-grid-2col">
             <div className="profile-card">
               <div className="profile-card-title">
-                <User size={13} style={{ marginRight: 6, verticalAlign: -2 }} />
+                <User size={13} className="icon-inline" />
                 Personal Information
               </div>
               <div className="profile-field-row">
@@ -308,7 +301,7 @@ export default function ProfilePage() {
               <div className="profile-card-title">
                 <Briefcase
                   size={13}
-                  style={{ marginRight: 6, verticalAlign: -2 }}
+                  className="icon-inline"
                 />
                 Professional Information
               </div>

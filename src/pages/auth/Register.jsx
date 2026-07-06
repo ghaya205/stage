@@ -106,17 +106,7 @@ export default function Register() {
               </div>
             </div>
 
-            <div
-              className="auth-form-panel"
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                textAlign: "center",
-                gap: "18px",
-              }}
-            >
+            <div className="auth-form-panel auth-form-panel--centered">
               <div className="auth-portal-badge">
                 <img
                   src={dxcLogo}
@@ -129,70 +119,26 @@ export default function Register() {
                 </div>
               </div>
 
-              <div
-                style={{
-                  width: "72px",
-                  height: "72px",
-                  borderRadius: "50%",
-                  background: "rgba(124,58,237,0.12)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "8px auto 0",
-                }}
-              >
-                <Clock size={34} style={{ color: "#7c3aed" }} />
+              <div className="pending-icon-circle">
+                <Clock size={34} className="pending-icon" />
               </div>
 
-              <h2 style={{ margin: 0 }}>Account Pending Approval</h2>
+              <h2 className="no-margin">Account Pending Approval</h2>
 
-              <p
-                style={{
-                  color: "#8b8fa8",
-                  fontSize: "14px",
-                  lineHeight: "1.6",
-                  maxWidth: "340px",
-                  margin: 0,
-                }}
-              >
+              <p className="pending-desc">
                 Your account has been created successfully. An administrator
                 must approve your registration before you can log in. You will
                 receive access once approved.
               </p>
 
-              <div
-                style={{
-                  background: "rgba(124,58,237,0.07)",
-                  border: "1px solid rgba(124,58,237,0.18)",
-                  borderRadius: "10px",
-                  padding: "14px 20px",
-                  width: "100%",
-                  maxWidth: "340px",
-                }}
-              >
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: "13px",
-                    color: "#6d28d9",
-                    fontWeight: 500,
-                  }}
-                >
+              <div className="pending-notice-box">
+                <p className="pending-notice-text">
                   Please contact your supervisor or IT department if you need
                   urgent access.
                 </p>
               </div>
 
-              <Link
-                to="/login"
-                className="auth-btn"
-                style={{
-                  textDecoration: "none",
-                  textAlign: "center",
-                  display: "block",
-                  marginTop: "4px",
-                }}
-              >
+              <Link to="/login" className="auth-btn pending-back-link">
                 Back to Login
               </Link>
             </div>
@@ -350,7 +296,7 @@ export default function Register() {
                       setEntCode("");
                     }}
                     required
-                    style={{ paddingRight: "32px" }}
+                    className="select-with-icon"
                   >
                     <option value="" disabled>
                       Select your role
@@ -364,31 +310,17 @@ export default function Register() {
 
               {role === "admin" && (
                 <div
-                  className="auth-field-group"
-                  style={{ animation: "fadeIn .25s ease" }}
+                  className="auth-field-group fade-in"
                 >
-                  <label
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <KeyRound size={13} style={{ color: "#7c3aed" }} />
+                  <label className="label-row">
+                    <KeyRound size={13} className="pending-icon" />
                     Enterprise Code
-                    <span
-                      style={{
-                        fontSize: "11px",
-                        color: "#8b8fa8",
-                        fontWeight: 400,
-                      }}
-                    >
+                    <span className="label-note">
                       (required for Admin)
                     </span>
                   </label>
                   <div
-                    className="auth-field-wrap"
-                    style={{ borderColor: "rgba(124,58,237,0.45)" }}
+                    className="auth-field-wrap auth-field-wrap--active"
                   >
                     <span className="auth-field-icon">
                       <KeyRound size={14} />
@@ -408,13 +340,7 @@ export default function Register() {
                       {showCode ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
-                  <p
-                    style={{
-                      fontSize: "11.5px",
-                      color: "#8b8fa8",
-                      margin: "4px 0 0 2px",
-                    }}
-                  >
+                  <p className="field-hint">
                     This code is provided by your IT department and authorises
                     admin account creation.
                   </p>
@@ -422,25 +348,8 @@ export default function Register() {
               )}
 
               {(role === "agent" || role === "supervisor") && (
-                <div
-                  style={{
-                    background: "rgba(124,58,237,0.06)",
-                    border: "1px solid rgba(124,58,237,0.15)",
-                    borderRadius: "8px",
-                    padding: "10px 14px",
-                    marginBottom: "4px",
-                  }}
-                >
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: "12.5px",
-                      color: "#6d28d9",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
-                  >
+                <div className="approval-notice-box">
+                  <p className="approval-notice-text">
                     <Clock size={13} /> Your account will require admin approval
                     before you can log in.
                   </p>

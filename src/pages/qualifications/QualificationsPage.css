@@ -1,0 +1,119 @@
+.qual-page-grid {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.qual-skills-hint {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-top: -6px;
+  margin-bottom: 14px;
+}
+.qual-state-msg {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.qual-skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.qual-skill-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: rgba(124,58,237,0.10);
+  color: #7c3aed;
+}
+.qual-skill-remove-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #7c3aed;
+  font-weight: 800;
+}
+.qual-skills-empty { font-size: 12.5px; color: var(--text-secondary); }
+
+.qual-skill-add-row { display: flex; gap: 8px; }
+.qual-add-btn { white-space: nowrap; }
+
+.qual-status-badge {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(245,158,11,0.12);
+  color: #b45309;
+}
+
+.qual-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.qual-card-title { margin-bottom: 0; }
+.qual-header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.qual-btn-outline {
+  background: #fff;
+  color: var(--text-primary);
+  border: 1.5px solid var(--border);
+}
+
+.qual-add-form {
+  margin: 14px 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.qual-empty-state {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.qual-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+.qual-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.qual-item-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qual-item-icon--diploma { background: rgba(37,99,235,0.10); }
+.qual-item-icon--cert { background: rgba(217,119,6,0.10); }
+.qual-item-body { flex: 1; }
+.qual-item-name { font-weight: 700; font-size: 14px; }
+.qual-item-institution { font-size: 12px; color: var(--text-secondary); }
+.qual-item-proof-link { font-size: 11.5px; }
+.qual-item-delete-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #dc2626;
+}

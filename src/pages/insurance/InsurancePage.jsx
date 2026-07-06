@@ -7,6 +7,7 @@ import {
 import {
   FileText, ExternalLink, History, AlertCircle, CheckCircle2, Clock, XCircle,
 } from 'lucide-react';
+import './InsurancePage.css';
 
 const FEE_FIELDS = [
   ['honoraires', 'Honoraires'],
@@ -29,17 +30,14 @@ function emptyForm() {
 
 function StatusPill({ status }) {
   const map = {
-    pending: { bg: 'rgba(107,114,128,0.12)', color: '#4b5563', label: 'Pending', icon: Clock },
-    approved: { bg: 'rgba(16,185,129,0.12)', color: '#059669', label: 'Approved', icon: CheckCircle2 },
-    rejected: { bg: 'rgba(239,68,68,0.12)', color: '#dc2626', label: 'Rejected', icon: XCircle },
+    pending: { className: 'status-pill--pending', label: 'Pending', icon: Clock },
+    approved: { className: 'status-pill--approved', label: 'Approved', icon: CheckCircle2 },
+    rejected: { className: 'status-pill--rejected', label: 'Rejected', icon: XCircle },
   };
   const s = map[status] ?? map.pending;
   const Icon = s.icon;
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px',
-      borderRadius: 999, fontSize: 11, fontWeight: 700, background: s.bg, color: s.color,
-    }}>
+    <span className={`status-pill ${s.className}`}>
       <Icon size={11} /> {s.label}
     </span>
   );
@@ -101,24 +99,22 @@ export default function InsurancePage() {
     <DashboardLayout pageTitle="Insurance">
       <div className="profile-page">
         <div className="profile-card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-            <div style={{ fontSize: 18, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="ins-header">
+            <div className="ins-header-title">
               <FileText size={19} color="#7c3aed" /> New Care Bulletin
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="ins-header-actions">
               <a
                 href="https://ars.dh-ss.com/login"
                 target="_blank"
                 rel="noreferrer"
-                className="profile-save-btn"
-                style={{ textDecoration: 'none', background: '#fff', color: 'var(--text-primary)', border: '1.5px solid var(--border)' }}
+                className="profile-save-btn ins-btn-outline"
               >
                 <ExternalLink size={14} /> Provider Portal
               </a>
               <button
                 type="button"
-                className="profile-save-btn"
-                style={{ background: '#fff', color: 'var(--text-primary)', border: '1.5px solid var(--border)' }}
+                className="profile-save-btn ins-btn-outline"
                 onClick={() => setView((v) => (v === 'form' ? 'history' : 'form'))}
               >
                 <History size={14} /> {view === 'form' ? 'View History' : 'New Bulletin'}
@@ -131,7 +127,7 @@ export default function InsurancePage() {
               {msg && <div className="profile-msg-ok"><CheckCircle2 size={14} /> {msg}</div>}
               {err && <div className="profile-msg-err"><AlertCircle size={14} /> {err}</div>}
 
-              <form onSubmit={handleSubmit} style={{ marginTop: 16 }}>
+              <form onSubmit={handleSubmit} className="ins-form">
                 <div className="profile-field-row-3">
                   <div className="profile-field">
                     <label>Matricule</label>
@@ -158,8 +154,8 @@ export default function InsurancePage() {
                   </div>
                 </div>
 
-                <div className="profile-card-title" style={{ marginTop: 20 }}>Détails des frais</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0 20px' }}>
+                <div className="profile-card-title ins-section-title">Détails des frais</div>
+                <div className="ins-fee-grid">
                   {FEE_FIELDS.map(([key, label]) => (
                     <div className="profile-field" key={key}>
                       <label>{label}</label>
@@ -183,15 +179,15 @@ export default function InsurancePage() {
                   </div>
                   <div className="profile-field">
                     <label>Total des Soins</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div className="ins-total-row">
                       <input className="profile-input" type="text" value={total.toFixed(3)} readOnly />
-                      <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>TND</span>
+                      <span className="ins-total-currency">TND</span>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                  <button type="button" className="profile-save-btn" style={{ background: '#fff', color: 'var(--text-primary)', border: '1.5px solid var(--border)' }} onClick={handleClear}>
+                <div className="ins-form-actions">
+                  <button type="button" className="profile-save-btn ins-btn-outline" onClick={handleClear}>
                     Clear Form
                   </button>
                   <button className="profile-save-btn" type="submit" disabled={submitting}>
@@ -241,52 +237,49 @@ function HistorySection({ token, canModerate }) {
   }
 
   return (
-    <div style={{ marginTop: 16 }}>
+    <div className="ins-history">
       {loading ? (
-        <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>Loading…</div>
+        <div className="ins-state-msg">Loading…</div>
       ) : bulletins.length === 0 ? (
-        <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>No care bulletins submitted yet.</div>
+        <div className="ins-state-msg">No care bulletins submitted yet.</div>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="ins-table-wrap">
+          <table className="ins-table">
             <thead>
-              <tr style={{ background: '#f9fafb', borderBottom: '1px solid var(--border)' }}>
+              <tr>
                 {[canModerate ? 'Agent' : null, 'Matricule', 'Adherent', 'Date', 'Total', 'Status', canModerate ? 'Actions' : null]
                   .filter(Boolean)
                   .map((h) => (
-                    <th key={h} style={{
-                      padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700,
-                      textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)',
-                    }}>{h}</th>
+                    <th key={h}>{h}</th>
                   ))}
               </tr>
             </thead>
             <tbody>
               {bulletins.map((b) => (
-                <tr key={b.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  {canModerate && <td style={{ padding: '12px 14px' }}>{b.user_name}</td>}
-                  <td style={{ padding: '12px 14px' }}>{b.matricule}</td>
-                  <td style={{ padding: '12px 14px' }}>{b.adherent_name}</td>
-                  <td style={{ padding: '12px 14px', color: 'var(--text-secondary)' }}>{b.date_soins ?? '—'}</td>
-                  <td style={{ padding: '12px 14px', fontWeight: 700 }}>{Number(b.total_soins).toFixed(3)} TND</td>
-                  <td style={{ padding: '12px 14px' }}><StatusPill status={b.status} /></td>
+                <tr key={b.id}>
+                  {canModerate && <td>{b.user_name}</td>}
+                  <td>{b.matricule}</td>
+                  <td>{b.adherent_name}</td>
+                  <td className="ins-cell-muted">{b.date_soins ?? '—'}</td>
+                  <td className="ins-cell-total">{Number(b.total_soins).toFixed(3)} TND</td>
+                  <td><StatusPill status={b.status} /></td>
                   {canModerate && (
-                    <td style={{ padding: '12px 14px' }}>
+                    <td>
                       {b.status === 'pending' ? (
-                        <div style={{ display: 'flex', gap: 6 }}>
+                        <div className="ins-action-group">
                           <button
                             disabled={busyId === b.id}
                             onClick={() => handleStatus(b.id, 'approved')}
-                            style={{ padding: '5px 10px', borderRadius: 6, border: 'none', background: '#059669', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                            className="ins-action-btn ins-action-btn--approve"
                           >Approve</button>
                           <button
                             disabled={busyId === b.id}
                             onClick={() => handleStatus(b.id, 'rejected')}
-                            style={{ padding: '5px 10px', borderRadius: 6, border: 'none', background: '#dc2626', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                            className="ins-action-btn ins-action-btn--reject"
                           >Reject</button>
                         </div>
                       ) : (
-                        <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>—</span>
+                        <span className="ins-action-none">—</span>
                       )}
                     </td>
                   )}

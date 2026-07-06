@@ -5,6 +5,7 @@ import { fetchOpportunities, createOpportunity, deleteOpportunity } from '../../
 import {
   Briefcase, Search, Filter, Inbox, MapPin, Plus, Trash2, AlertCircle, CheckCircle2,
 } from 'lucide-react';
+import './OpportunitiesPage.css';
 
 const CATEGORIES = ['All Categories', 'IT', 'IT Manager', 'Developer', 'Data Science', 'Applications & Cloud'];
 
@@ -69,12 +70,12 @@ export default function OpportunitiesPage() {
     <DashboardLayout pageTitle="Internal Opportunities">
       <div className="profile-page">
         <div className="profile-card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div className="opp-header">
             <div>
-              <div style={{ fontSize: 18, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div className="opp-header-title">
                 <Briefcase size={19} color="#7c3aed" /> Internal Opportunities
               </div>
-              <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>
+              <div className="opp-header-subtitle">
                 Explore and apply for open positions within DXC Technology.
               </div>
             </div>
@@ -85,12 +86,11 @@ export default function OpportunitiesPage() {
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: 10, marginTop: 18, flexWrap: 'wrap' }}>
-            <div style={{ position: 'relative', flex: '1 1 260px' }}>
-              <Search size={15} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--text-secondary)' }} />
+          <div className="opp-filters">
+            <div className="opp-search-wrap">
+              <Search size={15} className="opp-search-icon" />
               <input
-                className="profile-input"
-                style={{ paddingLeft: 34 }}
+                className="profile-input opp-search-input"
                 type="text"
                 placeholder="Search by title or keyword…"
                 value={search}
@@ -98,7 +98,7 @@ export default function OpportunitiesPage() {
                 onKeyDown={(e) => { if (e.key === 'Enter') handleFilter(); }}
               />
             </div>
-            <select className="profile-input" style={{ maxWidth: 220 }} value={category} onChange={(e) => setCategory(e.target.value)}>
+            <select className="profile-input opp-category-select" value={category} onChange={(e) => setCategory(e.target.value)}>
               {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
             <button className="profile-save-btn" onClick={handleFilter}>
@@ -110,7 +110,7 @@ export default function OpportunitiesPage() {
           {err && <div className="profile-msg-err"><AlertCircle size={14} /> {err}</div>}
 
           {showForm && (
-            <form onSubmit={handleCreate} style={{ margin: '18px 0', padding: 16, border: '1px solid var(--border)', borderRadius: 10 }}>
+            <form onSubmit={handleCreate} className="opp-create-form">
               <div className="profile-field-row">
                 <div className="profile-field">
                   <label>Title</label>
@@ -137,31 +137,31 @@ export default function OpportunitiesPage() {
             </form>
           )}
 
-          <div style={{ marginTop: 24 }}>
+          <div className="opp-list-wrap">
             {loading ? (
-              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>Loading…</div>
+              <div className="opp-state-msg">Loading…</div>
             ) : opportunities.length === 0 ? (
-              <div style={{ padding: 50, textAlign: 'center', color: 'var(--text-secondary)' }}>
-                <Inbox size={40} style={{ opacity: 0.3, marginBottom: 10 }} />
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>No open positions found</div>
-                <div style={{ fontSize: 13, marginTop: 4 }}>Try adjusting your search filters or check back later.</div>
+              <div className="opp-empty-state">
+                <Inbox size={40} className="opp-empty-icon" />
+                <div className="opp-empty-title">No open positions found</div>
+                <div className="opp-empty-hint">Try adjusting your search filters or check back later.</div>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="opp-list">
                 {opportunities.map((o) => (
-                  <div key={o.id} style={{ padding: 16, border: '1px solid var(--border)', borderRadius: 10, display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                  <div key={o.id} className="opp-card">
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 15 }}>{o.title}</div>
-                      <div style={{ display: 'flex', gap: 10, marginTop: 4, fontSize: 12, color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
-                        <span style={{ padding: '2px 9px', borderRadius: 999, background: '#f3f4f8' }}>{o.category}</span>
-                        {o.location && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={12} /> {o.location}</span>}
+                      <div className="opp-card-title">{o.title}</div>
+                      <div className="opp-card-meta">
+                        <span className="opp-card-category">{o.category}</span>
+                        {o.location && <span className="opp-card-location"><MapPin size={12} /> {o.location}</span>}
                       </div>
-                      {o.description && <div style={{ fontSize: 13, marginTop: 8, color: 'var(--text-secondary)' }}>{o.description}</div>}
+                      {o.description && <div className="opp-card-description">{o.description}</div>}
                     </div>
                     {user?.role_id === 3 && (
                       <button
                         onClick={() => handleDelete(o.id)}
-                        style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#dc2626', height: 'fit-content' }}
+                        className="opp-card-delete-btn"
                       >
                         <Trash2 size={16} />
                       </button>

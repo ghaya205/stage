@@ -92,11 +92,11 @@ export default function Login() {
           <p className="auth-subtitle">Sign in to access your SLA Dashboard</p>
 
           {errorType === 'pending' && (
-            <div className="auth-msg-error" style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start', background: 'rgba(124,58,237,0.08)', borderColor: 'rgba(124,58,237,0.3)', color: '#5b21b6' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+            <div className="auth-msg-error auth-msg-error--pending">
+              <span className="auth-msg-error__title">
                 <Clock size={14}/> Approval Pending
               </span>
-              <span style={{ fontSize: '12.5px', fontWeight: 400 }}>{error}</span>
+              <span className="auth-msg-error__detail">{error}</span>
             </div>
           )}
 
@@ -133,7 +133,7 @@ export default function Login() {
             </div>
 
             <div className="auth-login-opts">
-              <div className="auth-check-row" style={{marginBottom:0}}>
+              <div className="auth-check-row auth-check-row--tight">
                 <input id="remember" type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} />
                 <label htmlFor="remember">Remember me</label>
               </div>

@@ -5,6 +5,7 @@ import { fetchMyDocuments, uploadDocument, deleteDocument, assetUrl } from '../.
 import {
   Folder, Upload, Eye, Trash2, FileText, Image as ImageIcon, Film, AlertCircle, CheckCircle2,
 } from 'lucide-react';
+import './DocumentsPage.css';
 
 function DocIcon({ name }) {
   const ext = (name.split('.').pop() || '').toLowerCase();
@@ -81,11 +82,11 @@ export default function DocumentsPage() {
   return (
     <DashboardLayout pageTitle="My Documents">
       <div className="profile-page">
-        <input ref={fileInput} type="file" style={{ display: 'none' }} onChange={handleFileChosen} />
+        <input ref={fileInput} type="file" className="docs-file-input" onChange={handleFileChosen} />
 
         <div className="profile-card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-            <div style={{ fontSize: 18, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="docs-header">
+            <div className="docs-header-title">
               <Folder size={19} color="#2563eb" /> My Documents
             </div>
             <button className="profile-save-btn" onClick={() => triggerUpload('other')} disabled={uploading}>
@@ -96,10 +97,10 @@ export default function DocumentsPage() {
           {msg && <div className="profile-msg-ok"><CheckCircle2 size={14} /> {msg}</div>}
           {err && <div className="profile-msg-err"><AlertCircle size={14} /> {err}</div>}
 
-          <div style={{ marginTop: 22 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#b45309', marginBottom: 10 }}>Profile Assets</div>
+          <div className="docs-section">
+            <div className="docs-section-label">Profile Assets</div>
             {loading ? (
-              <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Loading…</div>
+              <div className="docs-loading-text">Loading…</div>
             ) : cv ? (
               <DocCard doc={cv} label="CV" onDelete={handleDelete} />
             ) : (
@@ -107,12 +108,12 @@ export default function DocumentsPage() {
             )}
           </div>
 
-          <div style={{ marginTop: 26 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#b45309', marginBottom: 10 }}>Other Documents</div>
+          <div className="docs-section docs-section--other">
+            <div className="docs-section-label">Other Documents</div>
             {!loading && others.length === 0 && (
-              <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>No other documents uploaded yet.</div>
+              <div className="docs-empty-text">No other documents uploaded yet.</div>
             )}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+            <div className="docs-grid">
               {others.map((d) => (
                 <DocCard key={d.id} doc={d} onDelete={handleDelete} />
               ))}
@@ -126,53 +127,34 @@ export default function DocumentsPage() {
 
 function DocUploadPlaceholder({ label, onClick }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        width: 160, height: 110, border: '1.5px dashed var(--border)', borderRadius: 10,
-        background: '#fafafa', cursor: 'pointer', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', color: 'var(--text-secondary)', fontSize: 12.5, fontWeight: 600,
-      }}
-    >
-      <Upload size={16} style={{ marginRight: 6 }} /> {label}
+    <button onClick={onClick} className="docs-upload-placeholder">
+      <Upload size={16} className="docs-upload-placeholder__icon" /> {label}
     </button>
   );
 }
 
 function DocCard({ doc, label, onDelete }) {
   return (
-    <div style={{
-      width: 160, padding: 14, border: '1px solid var(--border)', borderRadius: 10, textAlign: 'center',
-    }}>
-      <div style={{
-        width: 44, height: 44, margin: '0 auto 10px', borderRadius: 8, background: 'rgba(124,58,237,0.10)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
+    <div className="doc-card">
+      <div className="doc-card__icon">
         <DocIcon name={doc.original_name} />
       </div>
-      <div style={{ fontWeight: 700, fontSize: 13 }}>{label ?? doc.original_name}</div>
-      <div style={{ fontSize: 10.5, color: 'var(--text-secondary)', wordBreak: 'break-all', marginTop: 2 }}>
+      <div className="doc-card__label">{label ?? doc.original_name}</div>
+      <div className="doc-card__filename">
         {doc.original_name}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 10 }}>
+      <div className="doc-card__actions">
         <a
           href={assetUrl(doc.path)}
           target="_blank"
           rel="noreferrer"
-          style={{
-            width: 30, height: 30, borderRadius: 6, border: '1px solid var(--border)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)',
-          }}
+          className="doc-card__action-btn"
         >
           <Eye size={14} />
         </a>
         <button
           onClick={() => onDelete(doc.id)}
-          style={{
-            width: 30, height: 30, borderRadius: 6, border: '1px solid rgba(220,38,38,0.3)',
-            background: 'rgba(220,38,38,0.06)', cursor: 'pointer', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', color: '#dc2626',
-          }}
+          className="doc-card__action-btn doc-card__action-btn--delete"
         >
           <Trash2 size={14} />
         </button>
