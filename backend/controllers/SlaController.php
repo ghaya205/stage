@@ -1,0 +1,278 @@
+<?php
+namespace Controllers;
+
+use Core\Controller;
+use Models\Company;
+use Models\Desk;
+use Models\SlaData;
+use Models\SlaTarget;
+use Models\User;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
+class SlaController extends Controller {
+
+    // ---------------------------------------------------------------
+    // Imports (admin only)
+    // ---------------------------------------------------------------
+
+    /** POST /sla/import-targets  (multipart form, field name: file) */
+    public function importTargets(): void {
+        $this->requireAdmin();
+
+        if (empty($_FILES['file']['tmp_name'])) {
+            $this->json(['error' => 'No file uploaded'], 400);
+        }
+
+        try {
+            $result = (new SlaTarget())->importSheet1Csv($_FILES['file']['tmp_name']);
+            $this->json(array_merge(['message' => 'SLA targets imported'], $result));
+        } catch (\Throwable $e) {
+            $this->json(['error' => 'Import failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /** POST /sla/import-data  (multipart form, field name: file) */
+    public function importData(): void {
+        $this->requireAdmin();
+
+        if (empty($_FILES['file']['tmp_name'])) {
+            $this->json(['error' => 'No file uploaded'], 400);
+        }
+
+        try {
+            $result = (new SlaData())->importCsv($_FILES['file']['tmp_name']);
+            $this->json(array_merge(['message' => 'SLA data imported'], $result));
+        } catch (\Throwable $e) {
+            $this->json(['error' => 'Import failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Reference data
+    // ---------------------------------------------------------------
+
+    /** GET /sla/companies */
+    public function companies(): void {
+        $this->requireAuth();
+        $this->json(['companies' => (new Company())->all()]);
+    }
+
+    // ---------------------------------------------------------------
+    // Dashboards
+    // ---------------------------------------------------------------
+
+    /** GET /sla/dashboard?company_id=&date_from=&date_to= — admin: everything (optionally scoped) */
+    public function adminDashboard(): void {
+        $decoded = $this->requireAuth();
+        if ((int) $decoded->role_id !== 3) {
+            $this->json(['error' => 'Forbidden'], 403);
+        }
+
+        $companyId = isset($_GET['company_id']) && $_GET['company_id'] !== '' ? (int) $_GET['company_id'] : null;
+        $dateFrom  = $_GET['date_from'] ?? null;
+        $dateTo    = $_GET['date_to']   ?? null;
+
+        $rows = (new SlaData())->getQueueAggregates($dateFrom, $dateTo, $companyId, null);
+        $this->json($this->buildDashboard($rows));
+    }
+
+    /** GET /sla/dashboard/mine — supervisor: auto-scoped to their desk's company */
+    public function supervisorDashboard(): void {
+        $decoded = $this->requireAuth();
+        if ((int) $decoded->role_id !== 2) {
+            $this->json(['error' => 'Forbidden'], 403);
+        }
+
+        $user = (new User())->findById((int) $decoded->sub);
+        if (!$user || empty($user['desk_id'])) {
+            $this->json(['error' => 'No desk assigned to your profile yet. Ask an admin to set your desk in your profile.'], 400);
+        }
+
+        $desk = (new Desk())->find((int) $user['desk_id']);
+        if (!$desk || empty($desk['company_id'])) {
+            $this->json(['error' => 'Your desk is not linked to a company yet. Ask an admin to link it.'], 400);
+        }
+
+        $dateFrom = $_GET['date_from'] ?? null;
+        $dateTo   = $_GET['date_to']   ?? null;
+
+        $rows = (new SlaData())->getQueueAggregates($dateFrom, $dateTo, (int) $desk['company_id'], null);
+        $this->json($this->buildDashboard($rows));
+    }
+
+    // ---------------------------------------------------------------
+    // Aggregation helper (queue rows -> desk -> company -> overview)
+    // ---------------------------------------------------------------
+
+    private function buildDashboard(array $rows): array {
+        $companies = [];
+        $overall   = $this->emptyBucket();
+
+        foreach ($rows as $row) {
+            $companyName = $row['company_name'] ?: 'Unclassified';
+            $deskName    = $row['desk_name'] ?: $row['queue_name'];
+
+            $companies[$companyName] ??= [
+                'name'   => $companyName,
+                'bucket' => $this->emptyBucket(),
+                'desks'  => [],
+            ];
+            $companies[$companyName]['desks'][$deskName] ??= [
+                'name'    => $deskName,
+                'bucket'  => $this->emptyBucket(),
+                'queues'  => [],
+            ];
+
+            $this->accumulate($companies[$companyName]['bucket'], $row);
+            $this->accumulate($companies[$companyName]['desks'][$deskName]['bucket'], $row);
+            $this->accumulate($overall, $row);
+
+            $queueBucket = $this->emptyBucket();
+            $this->accumulate($queueBucket, $row);
+            $companies[$companyName]['desks'][$deskName]['queues'][] = $this->rateSummary($queueBucket, $row['queue_name']);
+        }
+
+        // Finalize rates + find best performers.
+        $companyList = [];
+        foreach ($companies as $company) {
+            $deskList = [];
+            foreach ($company['desks'] as $desk) {
+                $deskList[] = $this->rateSummary($desk['bucket'], $desk['name'], $desk['queues']);
+            }
+            usort($deskList, fn($a, $b) => $b['offered'] <=> $a['offered']);
+            $companyList[] = $this->rateSummary($company['bucket'], $company['name'], $deskList);
+        }
+        usort($companyList, fn($a, $b) => $b['offered'] <=> $a['offered']);
+
+        $overallSummary = $this->rateSummary($overall, 'Overall');
+
+        return [
+            'overview'   => $overallSummary,
+            'highlights' => $this->highlights($companyList),
+            'companies'  => $companyList,
+        ];
+    }
+
+    private function emptyBucket(): array {
+        return [
+            'offered' => 0, 'handled' => 0, 'abandoned' => 0,
+            'answered_in_sla' => 0, 'abandoned_in_sla' => 0,
+            'asa_sum' => 0, 'asa_n' => 0, 'aht_sum' => 0, 'aht_n' => 0, 'hold_sum' => 0, 'hold_n' => 0,
+            'target_ans_sum' => 0, 'target_abd_sum' => 0, 'target_n' => 0,
+        ];
+    }
+
+    private function accumulate(array &$bucket, array $row): void {
+        $bucket['offered']          += (int) ($row['offered'] ?? 0);
+        $bucket['handled']          += (int) ($row['handled'] ?? 0);
+        $bucket['abandoned']        += (int) ($row['abandoned'] ?? 0);
+        $bucket['answered_in_sla']  += (int) ($row['answered_in_sla'] ?? 0);
+        $bucket['abandoned_in_sla'] += (int) ($row['abandoned_in_sla'] ?? 0);
+
+        if ($row['avg_asa'] !== null)  { $bucket['asa_sum']  += (float) $row['avg_asa'];  $bucket['asa_n']++; }
+        if ($row['avg_aht'] !== null)  { $bucket['aht_sum']  += (float) $row['avg_aht'];  $bucket['aht_n']++; }
+        if ($row['avg_hold'] !== null) { $bucket['hold_sum'] += (float) $row['avg_hold']; $bucket['hold_n']++; }
+
+        if ($row['target_ans_rate'] !== null) { $bucket['target_ans_sum'] += (float) $row['target_ans_rate']; $bucket['target_n']++; }
+        if ($row['target_abd_rate'] !== null) { $bucket['target_abd_sum'] += (float) $row['target_abd_rate']; }
+    }
+
+    /**
+     * Turns raw sums into the rates shown on screen.
+     * ans_rate  = answered in SLA / (offered - abandoned in SLA)
+     * abd_rate  = 1 - ((abandoned - abandoned in SLA) / offered)   [SLA compliance on abandonment]
+     */
+    private function rateSummary(array $bucket, string $name, array $children = []): array {
+        $offered  = $bucket['offered'];
+        $ansDenom = $offered - $bucket['abandoned_in_sla'];
+        $ansRate  = $ansDenom > 0 ? $bucket['answered_in_sla'] / $ansDenom : null;
+
+        $abandonedOutSla = $bucket['abandoned'] - $bucket['abandoned_in_sla'];
+        $abdRate = $offered > 0 ? 1 - ($abandonedOutSla / $offered) : null;
+
+        $targetAns = $bucket['target_n'] > 0 ? $bucket['target_ans_sum'] / $bucket['target_n'] : null;
+        $targetAbd = $bucket['target_n'] > 0 ? $bucket['target_abd_sum'] / $bucket['target_n'] : null;
+
+        return [
+            'name'             => $name,
+            'offered'          => $offered,
+            'handled'          => $bucket['handled'],
+            'abandoned'        => $bucket['abandoned'],
+            'answer_rate'      => $ansRate,
+            'abandon_rate'     => $abdRate,
+            'target_answer_rate'  => $targetAns,
+            'target_abandon_rate' => $targetAbd,
+            'meets_answer_target'  => ($ansRate !== null && $targetAns !== null) ? $ansRate >= $targetAns : null,
+            'meets_abandon_target' => ($abdRate !== null && $targetAbd !== null) ? $abdRate >= $targetAbd : null,
+            'avg_asa'  => $bucket['asa_n']  > 0 ? round($bucket['asa_sum']  / $bucket['asa_n'])  : null,
+            'avg_aht'  => $bucket['aht_n']  > 0 ? round($bucket['aht_sum']  / $bucket['aht_n'])  : null,
+            'avg_hold' => $bucket['hold_n'] > 0 ? round($bucket['hold_sum'] / $bucket['hold_n']) : null,
+            'children' => $children,
+        ];
+    }
+
+    /** Picks the "Total Handled / Best Answer Rate / Highest Volume / Fastest Response ..." style highlights. */
+    private function highlights(array $companyList): array {
+        $flat = [];
+        foreach ($companyList as $c) {
+            $flat[] = $c;
+            foreach ($c['children'] as $d) $flat[] = $d;
+        }
+
+        $pick = function (array $list, string $field, bool $lowestIsBest) {
+            $best = null;
+            foreach ($list as $item) {
+                if ($item[$field] === null) continue;
+                if ($best === null) { $best = $item; continue; }
+                if ($lowestIsBest ? $item[$field] < $best[$field] : $item[$field] > $best[$field]) {
+                    $best = $item;
+                }
+            }
+            return $best ? ['name' => $best['name'], 'value' => $best[$field]] : null;
+        };
+
+        return [
+            'best_answer_rate' => $pick($flat, 'answer_rate', false),
+            'highest_volume'   => $pick($flat, 'offered', false),
+            'fastest_response' => $pick($flat, 'avg_asa', true),
+            'best_efficiency'  => $pick($flat, 'avg_aht', true),
+            'shortest_hold'    => $pick($flat, 'avg_hold', true),
+        ];
+    }
+
+    // ---------------------------------------------------------------
+
+    private function requireAdmin(): object {
+        $decoded = $this->requireAuth();
+        if ((int) $decoded->role_id !== 3) {
+            $this->json(['error' => 'Forbidden'], 403);
+        }
+        return $decoded;
+    }
+
+    private function requireAuth(): object {
+        $token = $this->bearerToken();
+        if (!$token) {
+            $this->json(['error' => 'No token provided'], 401);
+        }
+        try {
+            return JWT::decode($token, new Key(JWT_SECRET, 'HS256'));
+        } catch (\Exception $e) {
+            $this->json(['error' => 'Invalid or expired token'], 401);
+        }
+    }
+
+    private function bearerToken(): string {
+        $header = $_SERVER['HTTP_AUTHORIZATION']
+            ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+            ?? '';
+
+        if (!$header && function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+            $header  = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        }
+
+        return str_replace('Bearer ', '', $header);
+    }
+}

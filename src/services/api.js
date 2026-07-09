@@ -379,3 +379,55 @@ export async function updateCareBulletinStatus(token, payload) {
   });
   return res.json();
 }
+
+// ---- SLA dashboard ----
+
+export async function fetchSlaCompanies(token) {
+  const res = await fetch(`${BASE}/sla/companies`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function fetchAdminSlaDashboard(token, { companyId, dateFrom, dateTo } = {}) {
+  const params = new URLSearchParams();
+  if (companyId) params.set('company_id', companyId);
+  if (dateFrom) params.set('date_from', dateFrom);
+  if (dateTo) params.set('date_to', dateTo);
+  const res = await fetch(`${BASE}/sla/dashboard?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function fetchSupervisorSlaDashboard(token, { dateFrom, dateTo } = {}) {
+  const params = new URLSearchParams();
+  if (dateFrom) params.set('date_from', dateFrom);
+  if (dateTo) params.set('date_to', dateTo);
+  const res = await fetch(`${BASE}/sla/dashboard/mine?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function importSlaTargets(token, file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`${BASE}/sla/import-targets`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+  return res.json();
+}
+
+export async function importSlaData(token, file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`${BASE}/sla/import-data`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+  return res.json();
+}

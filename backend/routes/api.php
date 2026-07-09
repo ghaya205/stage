@@ -56,6 +56,13 @@ $router->add('GET',  '/opportunities',        'OpportunityController', 'list');
 $router->add('POST', '/opportunities/create', 'OpportunityController', 'create');
 $router->add('POST', '/opportunities/delete', 'OpportunityController', 'delete');
 
+// SLA dashboard
+$router->add('POST', '/sla/import-targets',   'SlaController', 'importTargets');
+$router->add('POST', '/sla/import-data',      'SlaController', 'importData');
+$router->add('GET',  '/sla/companies',        'SlaController', 'companies');
+$router->add('GET',  '/sla/dashboard',        'SlaController', 'adminDashboard');
+$router->add('GET',  '/sla/dashboard/mine',   'SlaController', 'supervisorDashboard');
+
 // Insurance / care bulletins
 $router->add('POST', '/insurance/create', 'InsuranceController', 'create');
 $router->add('GET',  '/insurance/mine',   'InsuranceController', 'mine');
