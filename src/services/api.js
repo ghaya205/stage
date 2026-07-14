@@ -389,21 +389,23 @@ export async function fetchSlaCompanies(token) {
   return res.json();
 }
 
-export async function fetchAdminSlaDashboard(token, { companyId, dateFrom, dateTo } = {}) {
+export async function fetchAdminSlaDashboard(token, { companyId, dateFrom, dateTo, deskName } = {}) {
   const params = new URLSearchParams();
   if (companyId) params.set('company_id', companyId);
   if (dateFrom) params.set('date_from', dateFrom);
   if (dateTo) params.set('date_to', dateTo);
+  if (deskName) params.set('desk_name', deskName);
   const res = await fetch(`${BASE}/sla/dashboard?${params.toString()}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.json();
 }
 
-export async function fetchSupervisorSlaDashboard(token, { dateFrom, dateTo } = {}) {
+export async function fetchSupervisorSlaDashboard(token, { dateFrom, dateTo, deskName } = {}) {
   const params = new URLSearchParams();
   if (dateFrom) params.set('date_from', dateFrom);
   if (dateTo) params.set('date_to', dateTo);
+  if (deskName) params.set('desk_name', deskName);
   const res = await fetch(`${BASE}/sla/dashboard/mine?${params.toString()}`, {
     headers: { Authorization: `Bearer ${token}` },
   });

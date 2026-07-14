@@ -72,8 +72,9 @@ class SlaController extends Controller {
         $companyId = isset($_GET['company_id']) && $_GET['company_id'] !== '' ? (int) $_GET['company_id'] : null;
         $dateFrom  = $_GET['date_from'] ?? null;
         $dateTo    = $_GET['date_to']   ?? null;
+        $deskName  = isset($_GET['desk_name']) && $_GET['desk_name'] !== '' ? $_GET['desk_name'] : null;
 
-        $rows = (new SlaData())->getQueueAggregates($dateFrom, $dateTo, $companyId, null);
+        $rows = (new SlaData())->getQueueAggregates($dateFrom, $dateTo, $companyId, $deskName);
         $this->json($this->buildDashboard($rows));
     }
 
@@ -96,8 +97,9 @@ class SlaController extends Controller {
 
         $dateFrom = $_GET['date_from'] ?? null;
         $dateTo   = $_GET['date_to']   ?? null;
+        $deskName = isset($_GET['desk_name']) && $_GET['desk_name'] !== '' ? $_GET['desk_name'] : null;
 
-        $rows = (new SlaData())->getQueueAggregates($dateFrom, $dateTo, (int) $desk['company_id'], null);
+        $rows = (new SlaData())->getQueueAggregates($dateFrom, $dateTo, (int) $desk['company_id'], $deskName);
         $this->json($this->buildDashboard($rows));
     }
 

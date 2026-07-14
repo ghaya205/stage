@@ -36,6 +36,7 @@ class DeskController extends Controller {
         $id = $deskModel->create([
             'name'           => $name,
             'acronym'        => $acronym,
+            'company_id'     => !empty($data['company_id']) ? (int) $data['company_id'] : null,
             'languages'      => $data['languages']      ?? [],
             'call_questions' => $data['call_questions'] ?? [],
             'case_questions' => $data['case_questions'] ?? [],
@@ -74,6 +75,7 @@ class DeskController extends Controller {
         $deskModel->update($id, [
             'name'           => $name,
             'acronym'        => $acronym,
+            'company_id'     => !empty($data['company_id']) ? (int) $data['company_id'] : null,
             'languages'      => $data['languages']      ?? [],
             'call_questions' => $data['call_questions'] ?? [],
             'case_questions' => $data['case_questions'] ?? [],

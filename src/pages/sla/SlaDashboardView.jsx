@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   Phone, PhoneMissed, Trophy, TrendingUp, Zap, Gauge, Clock3,
-  ChevronDown, ChevronRight, Building2, Upload, RefreshCw, AlertCircle,
+  ChevronDown, ChevronRight, Building2, Upload, RefreshCw, AlertCircle, Radio,
 } from 'lucide-react';
 import {
   fetchSlaCompanies, fetchAdminSlaDashboard, fetchSupervisorSlaDashboard,
-  importSlaTargets, importSlaData,
+  importSlaTargets, importSlaData, fetchDesks,
 } from '../../services/api';
+import SlaFilterBar, { computeDateRange, emptyFilters } from './SlaFilterBar';
 import './SlaDashboardView.css';
 
 function pct(v) {
@@ -154,20 +155,34 @@ function ImportPanel({ token, onImported }) {
   );
 }
 
+function RealTimeDataPlaceholder() {
+  return (
+    <div className="sla-state-msg sla-realtime-placeholder">
+      <Radio size={24} />
+      <p>Real Time Data is coming soon.</p>
+      <span className="sla-realtime-sub">This view will show live queue activity as it happens.</span>
+    </div>
+  );
+}
+
 export default function SlaDashboardView({ mode, token }) {
+  const [tab, setTab] = useState('historical');
   const [data, setData] = useState(null);
   const [companies, setCompanies] = useState([]);
-  const [companyId, setCompanyId] = useState('');
+  const [desks, setDesks] = useState([]);
+  const [filters, setFilters] = useState(emptyFilters());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const { dateFrom, dateTo } = computeDateRange(filters);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const res = mode === 'admin'
-        ? await fetchAdminSlaDashboard(token, { companyId })
-        : await fetchSupervisorSlaDashboard(token);
+        ? await fetchAdminSlaDashboard(token, { companyId: filters.companyId, dateFrom, dateTo, deskName: filters.deskName })
+        : await fetchSupervisorSlaDashboard(token, { dateFrom, dateTo, deskName: filters.deskName });
       if (res.error) setError(res.error);
       else setData(res);
     } catch {
@@ -175,9 +190,11 @@ export default function SlaDashboardView({ mode, token }) {
     } finally {
       setLoading(false);
     }
-  }, [mode, token, companyId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, token, filters.companyId, filters.deskName, dateFrom, dateTo]);
 
   useEffect(() => {
+    fetchDesks(token).then((res) => setDesks(res.desks || []));
     if (mode === 'admin') {
       fetchSlaCompanies(token).then((res) => setCompanies(res.companies || []));
     }
@@ -185,24 +202,8 @@ export default function SlaDashboardView({ mode, token }) {
   }, []);
 
   useEffect(() => {
-    (async () => {
-      await load();
-    })();
-  }, [load]);
-
-  if (loading && !data) {
-    return <div className="sla-state-msg"><RefreshCw size={20} className="sla-spin" /> Loading SLA data…</div>;
-  }
-
-  if (error) {
-    return (
-      <div className="sla-state-msg sla-state-msg--error">
-        <AlertCircle size={20} />
-        <p>{error}</p>
-        {mode === 'admin' && <ImportPanel token={token} onImported={load} />}
-      </div>
-    );
-  }
+    if (tab === 'historical') load();
+  }, [load, tab]);
 
   const overview = data?.overview;
   const highlights = data?.highlights || {};
@@ -210,37 +211,67 @@ export default function SlaDashboardView({ mode, token }) {
 
   return (
     <div className="sla-dashboard">
-      {mode === 'admin' && (
-        <div className="sla-toolbar">
-          <select className="sla-select" value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
-            <option value="">All companies</option>
-            {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-          <ImportPanel token={token} onImported={load} />
-        </div>
+      <SlaFilterBar
+        activeTab={tab}
+        onTabChange={setTab}
+        filters={filters}
+        onFiltersChange={setFilters}
+        desks={desks}
+        companies={companies}
+        showCompanyFilter={mode === 'admin'}
+        onRefresh={load}
+        loading={loading}
+      />
+
+      {tab === 'realtime' && <RealTimeDataPlaceholder />}
+
+      {tab === 'historical' && (
+        <>
+          {mode === 'admin' && (
+            <div className="sla-toolbar sla-toolbar--import">
+              <ImportPanel token={token} onImported={load} />
+            </div>
+          )}
+
+          {loading && !data && (
+            <div className="sla-state-msg"><RefreshCw size={20} className="sla-spin" /> Loading SLA data…</div>
+          )}
+
+          {!loading && error && (
+            <div className="sla-state-msg sla-state-msg--error">
+              <AlertCircle size={20} />
+              <p>{error}</p>
+              {mode === 'admin' && <ImportPanel token={token} onImported={load} />}
+            </div>
+          )}
+
+          {!error && data && (
+            <>
+              <div className="sla-stats-grid">
+                <StatCard icon={Phone} label="Total Handled" value={overview?.handled ?? 0} sub={`of ${overview?.offered ?? 0} offered`} />
+                <StatCard icon={PhoneMissed} label="Total Abandoned" value={overview?.abandoned ?? 0}
+                  sub={overview?.offered ? `${((overview.abandoned / overview.offered) * 100).toFixed(1)}% of offered` : null} />
+                <StatCard icon={Trophy} label="Best Answer Rate" value={highlights.best_answer_rate ? pct(highlights.best_answer_rate.value) : '—'}
+                  sub={highlights.best_answer_rate?.name} />
+                <StatCard icon={TrendingUp} label="Highest Volume" value={highlights.highest_volume?.value ?? '—'} sub={highlights.highest_volume?.name} />
+                <StatCard icon={Zap} label="Fastest Response" value={highlights.fastest_response ? secs(highlights.fastest_response.value) : '—'}
+                  sub={highlights.fastest_response?.name} />
+                <StatCard icon={Gauge} label="Best Efficiency" value={highlights.best_efficiency ? secs(highlights.best_efficiency.value) : '—'}
+                  sub={highlights.best_efficiency?.name} />
+                <StatCard icon={Clock3} label="Shortest Hold" value={highlights.shortest_hold ? secs(highlights.shortest_hold.value) : '—'}
+                  sub={highlights.shortest_hold?.name} />
+              </div>
+
+              <div className="sla-companies-list">
+                {companyList.length === 0 && (
+                  <div className="sla-state-msg">No SLA data yet for this scope. Import the SLA targets and interval data to get started.</div>
+                )}
+                {companyList.map((c, i) => <CompanyCard key={c.name} company={c} defaultOpen={i === 0 && companyList.length === 1} />)}
+              </div>
+            </>
+          )}
+        </>
       )}
-
-      <div className="sla-stats-grid">
-        <StatCard icon={Phone} label="Total Handled" value={overview?.handled ?? 0} sub={`of ${overview?.offered ?? 0} offered`} />
-        <StatCard icon={PhoneMissed} label="Total Abandoned" value={overview?.abandoned ?? 0}
-          sub={overview?.offered ? `${((overview.abandoned / overview.offered) * 100).toFixed(1)}% of offered` : null} />
-        <StatCard icon={Trophy} label="Best Answer Rate" value={highlights.best_answer_rate ? pct(highlights.best_answer_rate.value) : '—'}
-          sub={highlights.best_answer_rate?.name} />
-        <StatCard icon={TrendingUp} label="Highest Volume" value={highlights.highest_volume?.value ?? '—'} sub={highlights.highest_volume?.name} />
-        <StatCard icon={Zap} label="Fastest Response" value={highlights.fastest_response ? secs(highlights.fastest_response.value) : '—'}
-          sub={highlights.fastest_response?.name} />
-        <StatCard icon={Gauge} label="Best Efficiency" value={highlights.best_efficiency ? secs(highlights.best_efficiency.value) : '—'}
-          sub={highlights.best_efficiency?.name} />
-        <StatCard icon={Clock3} label="Shortest Hold" value={highlights.shortest_hold ? secs(highlights.shortest_hold.value) : '—'}
-          sub={highlights.shortest_hold?.name} />
-      </div>
-
-      <div className="sla-companies-list">
-        {companyList.length === 0 && (
-          <div className="sla-state-msg">No SLA data yet for this scope. Import the SLA targets and interval data to get started.</div>
-        )}
-        {companyList.map((c, i) => <CompanyCard key={c.name} company={c} defaultOpen={i === 0 && companyList.length === 1} />)}
-      </div>
     </div>
   );
 }

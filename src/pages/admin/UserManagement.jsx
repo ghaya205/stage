@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
-  fetchDesks, createDesk, updateDesk, adminCreateUser,
+  fetchDesks, createDesk, updateDesk, adminCreateUser, fetchSlaCompanies,
   fetchAllQualifications, adminDeleteQualification, approveQualification, assetUrl,
 } from '../../services/api';
 import {
@@ -331,7 +331,7 @@ function QuestionSection({ title, questions, onChange }) {
 
 function emptyDeskForm() {
   return {
-    id: null, name: '', acronym: '', languages: [], languageInput: '',
+    id: null, name: '', acronym: '', company_id: '', languages: [], languageInput: '',
     call_questions: [], case_questions: [], chat_questions: [],
   };
 }
@@ -340,6 +340,7 @@ function DeskManagement() {
   const { token } = useAuth();
   const [mode, setMode] = useState('create');
   const [desks, setDesks] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [selectedId, setSelectedId] = useState('');
   const [form, setForm] = useState(emptyDeskForm());
   const [msg, setMsg] = useState('');
@@ -348,6 +349,7 @@ function DeskManagement() {
 
   useEffect(() => {
     loadDesks();
+    fetchSlaCompanies(token).then((data) => setCompanies(data.companies || []));
   }, [token]);
 
   async function loadDesks() {
@@ -377,6 +379,7 @@ function DeskManagement() {
       id: desk.id,
       name: desk.name,
       acronym: desk.acronym,
+      company_id: desk.company_id ?? '',
       languages: desk.languages ?? [],
       languageInput: '',
       call_questions: desk.call_questions ?? [],
@@ -413,6 +416,7 @@ function DeskManagement() {
     const payload = {
       name: form.name.trim(),
       acronym: form.acronym.trim(),
+      company_id: form.company_id || null,
       languages: form.languages,
       call_questions: form.call_questions,
       case_questions: form.case_questions,
@@ -472,6 +476,20 @@ function DeskManagement() {
             <label>Desk Acronym</label>
             <input className="profile-input" type="text" value={form.acronym} onChange={(e) => set('acronym', e.target.value)} placeholder="e.g. rn for Renault" />
           </div>
+        </div>
+
+        <div className="profile-field mgmt-field-spaced">
+          <label>SLA Company (links this desk to the SLA dashboard)</label>
+          <select className="profile-input" value={form.company_id} onChange={(e) => set('company_id', e.target.value)}>
+            <option value="">-- Not linked --</option>
+            {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <p className="mgmt-field-hint">
+            Pick the SLA company this desk belongs to. Once linked, supervisors assigned to
+            this desk (in their profile's "Assigned Project") will see that company's SLA data
+            on their Team SLA Dashboard. Companies come from the "Account" column of the imported
+            SLA targets file — import that file first if the company you need isn't listed.
+          </p>
         </div>
 
         <div className="profile-field">

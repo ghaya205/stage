@@ -1,0 +1,96 @@
+.sla-manager { display: flex; flex-direction: column; gap: 12px; }
+
+.sla-manager-header { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.sla-manager-toggle {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 8px; border: none;
+  background: var(--dxc-gradient-h); color: #fff;
+  font-size: 12.5px; font-weight: 700; cursor: pointer;
+  transition: var(--transition);
+}
+.sla-manager-toggle:hover { filter: brightness(1.05); }
+.sla-manager-toggle--ghost {
+  background: var(--bg-white); color: var(--text-primary); border: 1px solid var(--border);
+}
+.sla-manager-toggle--ghost:hover { border-color: var(--dxc-coral); color: var(--dxc-coral); }
+
+.sla-add-queue-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+}
+.sla-add-queue-title {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 15px; font-weight: 800; color: var(--text-primary);
+  margin-bottom: 12px;
+}
+.sla-add-queue-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 8px;
+}
+@media (max-width: 640px) { .sla-add-queue-grid { grid-template-columns: 1fr; } }
+
+.sla-input {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-white);
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+.sla-input:focus { outline: none; border-color: var(--dxc-coral); }
+.sla-input--compact { padding: 5px 8px; font-size: 12.5px; }
+
+.sla-link-existing {
+  grid-column: 1 / -1;
+  background: none; border: none; color: var(--dxc-coral);
+  font-size: 12px; text-align: left; cursor: pointer; padding: 0;
+  width: fit-content;
+}
+
+.sla-advanced-toggle {
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: none; color: var(--text-secondary);
+  font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 0; margin-bottom: 6px;
+}
+.sla-advanced-toggle:hover { color: var(--dxc-coral); }
+
+.sla-add-queue-actions { display: flex; gap: 10px; margin-top: 10px; }
+
+.sla-btn {
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition);
+}
+.sla-btn--primary { background: var(--dxc-coral); color: #fff; }
+.sla-btn--primary:hover { filter: brightness(1.06); }
+.sla-btn--primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.sla-btn--ghost { background: var(--bg-white); color: var(--text-secondary); border: 1px solid var(--border); }
+.sla-btn--ghost:hover { border-color: var(--text-secondary); }
+
+.sla-manager-msg { font-size: 12.5px; margin-top: 4px; }
+.sla-manager-msg--ok { color: #16a34a; }
+.sla-manager-msg--bad { color: #dc2626; }
+
+.sla-icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px;
+  border-radius: 6px;
+}
+.sla-icon-btn:hover { background: #f3f4f8; color: var(--text-primary); }
+.sla-icon-btn--danger:hover { background: rgba(220,38,38,0.1); color: #dc2626; }
+
+.sla-manager-list { margin-top: 4px; }
+.sla-empty-cell { text-align: center; color: var(--text-secondary); padding: 16px !important; }

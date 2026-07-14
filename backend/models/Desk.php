@@ -40,12 +40,13 @@ class Desk {
 
     public function create(array $data): int {
         $stmt = $this->db->prepare(
-            "INSERT INTO desks (name, acronym, languages, call_questions, case_questions, chat_questions)
-             VALUES (?, ?, ?, ?, ?, ?)"
+            "INSERT INTO desks (name, acronym, company_id, languages, call_questions, case_questions, chat_questions)
+             VALUES (?, ?, ?, ?, ?, ?, ?)"
         );
         $stmt->execute([
             $data['name'],
             $data['acronym'],
+            $data['company_id'] ?: null,
             json_encode($data['languages'] ?? []),
             json_encode($data['call_questions'] ?? []),
             json_encode($data['case_questions'] ?? []),
@@ -57,12 +58,13 @@ class Desk {
     public function update(int $id, array $data): bool {
         $stmt = $this->db->prepare(
             "UPDATE desks
-             SET name = ?, acronym = ?, languages = ?, call_questions = ?, case_questions = ?, chat_questions = ?
+             SET name = ?, acronym = ?, company_id = ?, languages = ?, call_questions = ?, case_questions = ?, chat_questions = ?
              WHERE id = ?"
         );
         return $stmt->execute([
             $data['name'],
             $data['acronym'],
+            $data['company_id'] ?: null,
             json_encode($data['languages'] ?? []),
             json_encode($data['call_questions'] ?? []),
             json_encode($data['case_questions'] ?? []),

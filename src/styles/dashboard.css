@@ -790,6 +790,13 @@
 
 .mgmt-field-spaced { margin-bottom: 20px; }
 
+.mgmt-field-hint {
+  margin: 6px 2px 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
 .mgmt-state-msg {
   font-size: 13px;
   color: var(--text-secondary);
