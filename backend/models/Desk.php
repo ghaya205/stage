@@ -56,6 +56,17 @@ class Desk {
     }
 
     public function update(int $id, array $data): bool {
+        // company_id is only ever touched when the caller explicitly passes it
+        // (e.g. the SLA Queues "link desks to companies" page). Otherwise we keep
+        // whatever is currently in the DB, so editing a desk elsewhere (e.g. the
+        // Desk management form) can never silently clear the SLA company link.
+        if (array_key_exists('company_id', $data)) {
+            $companyId = $data['company_id'] ?: null;
+        } else {
+            $current = $this->find($id);
+            $companyId = $current ? ($current['company_id'] ?? null) : null;
+        }
+
         $stmt = $this->db->prepare(
             "UPDATE desks
              SET name = ?, acronym = ?, company_id = ?, languages = ?, call_questions = ?, case_questions = ?, chat_questions = ?
@@ -64,7 +75,7 @@ class Desk {
         return $stmt->execute([
             $data['name'],
             $data['acronym'],
-            $data['company_id'] ?: null,
+            $companyId,
             json_encode($data['languages'] ?? []),
             json_encode($data['call_questions'] ?? []),
             json_encode($data['case_questions'] ?? []),

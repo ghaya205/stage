@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
-  fetchDesks, createDesk, updateDesk, adminCreateUser, fetchSlaCompanies,
+  fetchDesks, createDesk, updateDesk, adminCreateUser,
   fetchAllQualifications, adminDeleteQualification, approveQualification, assetUrl,
 } from '../../services/api';
 import {
@@ -340,7 +340,6 @@ function DeskManagement() {
   const { token } = useAuth();
   const [mode, setMode] = useState('create');
   const [desks, setDesks] = useState([]);
-  const [companies, setCompanies] = useState([]);
   const [selectedId, setSelectedId] = useState('');
   const [form, setForm] = useState(emptyDeskForm());
   const [msg, setMsg] = useState('');
@@ -349,7 +348,7 @@ function DeskManagement() {
 
   useEffect(() => {
     loadDesks();
-    fetchSlaCompanies(token).then((data) => setCompanies(data.companies || []));
+    // fetchSlaCompanies(token).then((data) => setCompanies(data.companies || []));
   }, [token]);
 
   async function loadDesks() {
@@ -416,7 +415,10 @@ function DeskManagement() {
     const payload = {
       name: form.name.trim(),
       acronym: form.acronym.trim(),
-      company_id: form.company_id || null,
+      // company_id is intentionally omitted here — it's managed exclusively from
+      // SLA Queues > "Link desks to companies" now, to avoid two editable places
+      // for the same field. Not sending the key at all lets the backend leave
+      // whatever link is already in place untouched.
       languages: form.languages,
       call_questions: form.call_questions,
       case_questions: form.case_questions,
@@ -478,19 +480,8 @@ function DeskManagement() {
           </div>
         </div>
 
-        <div className="profile-field mgmt-field-spaced">
-          <label>SLA Company (links this desk to the SLA dashboard)</label>
-          <select className="profile-input" value={form.company_id} onChange={(e) => set('company_id', e.target.value)}>
-            <option value="">-- Not linked --</option>
-            {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-          <p className="mgmt-field-hint">
-            Pick the SLA company this desk belongs to. Once linked, supervisors assigned to
-            this desk (in their profile's "Assigned Project") will see that company's SLA data
-            on their Team SLA Dashboard. Companies come from the "Account" column of the imported
-            SLA targets file — import that file first if the company you need isn't listed.
-          </p>
-        </div>
+        
+          
 
         <div className="profile-field">
           <label>Desk Languages</label>

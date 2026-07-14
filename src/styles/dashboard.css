@@ -790,6 +790,14 @@
 
 .mgmt-field-spaced { margin-bottom: 20px; }
 
+.mgmt-readonly-field {
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary, #6b7280);
+  background: var(--surface-muted, #f3f4f6);
+  cursor: default;
+}
+
 .mgmt-field-hint {
   margin: 6px 2px 0;
   font-size: 12px;

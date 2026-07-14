@@ -72,15 +72,23 @@ class DeskController extends Controller {
             $this->json(['error' => 'A desk with this name already exists'], 409);
         }
 
-        $deskModel->update($id, [
+        $updateData = [
             'name'           => $name,
             'acronym'        => $acronym,
-            'company_id'     => !empty($data['company_id']) ? (int) $data['company_id'] : null,
             'languages'      => $data['languages']      ?? [],
             'call_questions' => $data['call_questions'] ?? [],
             'case_questions' => $data['case_questions'] ?? [],
             'chat_questions' => $data['chat_questions'] ?? [],
-        ]);
+        ];
+
+        // Only touch company_id if the caller actually sent it (e.g. the SLA Queues
+        // "link desks to companies" page). This keeps the Desk management form from
+        // wiping out the SLA company link just because it no longer sends this field.
+        if (array_key_exists('company_id', $data)) {
+            $updateData['company_id'] = !empty($data['company_id']) ? (int) $data['company_id'] : null;
+        }
+
+        $deskModel->update($id, $updateData);
 
         $this->json(['message' => 'Desk updated successfully']);
     }
