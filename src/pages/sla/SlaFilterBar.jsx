@@ -162,3 +162,76 @@ export default function SlaFilterBar({
 export function emptyFilters() {
   return { year: '', month: '', week: '', day: '', dayNum: '', deskName: '', companyId: '' };
 }
+
+/**
+ * Buckets the raw daily series (from the backend) into groups for the bar chart,
+ * choosing the granularity from what's currently selected:
+ *   nothing picked      -> one bar-group per YEAR
+ *   year picked         -> one bar-group per MONTH (Jan..Dec of that year)
+ *   year + month picked -> one bar-group per WEEK of that month
+ *   + week picked too   -> one bar-group per DAY of that week
+ */
+export function groupSeriesForChart(series, filters) {
+  const rows = series || [];
+
+  if (!filters.year) {
+    const byYear = new Map();
+    rows.forEach((r) => {
+      const y = (r.the_date || '').slice(0, 4);
+      if (!y) return;
+      const cur = byYear.get(y) || { a: 0, b: 0 };
+      cur.a += Number(r.handled) || 0;
+      cur.b += Number(r.abandoned) || 0;
+      byYear.set(y, cur);
+    });
+    return [...byYear.entries()]
+      .sort(([y1], [y2]) => y1.localeCompare(y2))
+      .map(([label, v]) => ({ label, ...v }));
+  }
+
+  if (filters.month === '') {
+    const byMonth = Array.from({ length: 12 }, () => ({ a: 0, b: 0 }));
+    rows.forEach((r) => {
+      const m = Number((r.the_date || '').slice(5, 7)) - 1;
+      if (m < 0 || m > 11) return;
+      byMonth[m].a += Number(r.handled) || 0;
+      byMonth[m].b += Number(r.abandoned) || 0;
+    });
+    return MONTHS.map((label, i) => ({ label: label.slice(0, 3), ...byMonth[i] }));
+  }
+
+  const y = Number(filters.year);
+  const m = Number(filters.month);
+
+  if (filters.week === '') {
+    const weeks = weeksInMonth(y, m);
+    return weeks.map((wk) => {
+      const acc = { a: 0, b: 0 };
+      rows.forEach((r) => {
+        const d = Number((r.the_date || '').slice(8, 10));
+        const rm = Number((r.the_date || '').slice(5, 7)) - 1;
+        const ry = Number((r.the_date || '').slice(0, 4));
+        if (ry === y && rm === m && d >= wk.start && d <= wk.end) {
+          acc.a += Number(r.handled) || 0;
+          acc.b += Number(r.abandoned) || 0;
+        }
+      });
+      return { label: wk.label, ...acc };
+    });
+  }
+
+  const weeks = weeksInMonth(y, m);
+  const wk = weeks[Number(filters.week)];
+  if (!wk) return [];
+  const days = [];
+  for (let d = wk.start; d <= wk.end; d++) {
+    const dateStr = `${y}-${pad(m + 1)}-${pad(d)}`;
+    const row = rows.find((r) => r.the_date === dateStr);
+    days.push({
+      label: String(d),
+      a: row ? Number(row.handled) || 0 : 0,
+      b: row ? Number(row.abandoned) || 0 : 0,
+    });
+  }
+  return days;
+}

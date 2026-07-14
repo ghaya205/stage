@@ -60,6 +60,10 @@ $router->add('POST', '/opportunities/delete', 'OpportunityController', 'delete')
 $router->add('POST', '/sla/import-targets',   'SlaController', 'importTargets');
 $router->add('POST', '/sla/import-data',      'SlaController', 'importData');
 $router->add('GET',  '/sla/companies',        'SlaController', 'companies');
+$router->add('GET',  '/sla/targets',          'SlaController', 'targets');
+$router->add('POST', '/sla/targets',          'SlaController', 'saveTarget');
+$router->add('POST', '/sla/targets/delete',   'SlaController', 'deleteTarget');
+$router->add('POST', '/sla/link-desk-company','SlaController', 'linkDeskCompany');
 $router->add('GET',  '/sla/dashboard',        'SlaController', 'adminDashboard');
 $router->add('GET',  '/sla/dashboard/mine',   'SlaController', 'supervisorDashboard');
 

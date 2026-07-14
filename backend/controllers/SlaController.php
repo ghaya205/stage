@@ -58,6 +58,54 @@ class SlaController extends Controller {
         $this->json(['companies' => (new Company())->all()]);
     }
 
+    /** GET /sla/targets — admin only: list all queues/SLA targets for the manager table */
+    public function targets(): void {
+        $this->requireAdmin();
+        $this->json(['targets' => (new SlaTarget())->all()]);
+    }
+
+    /** POST /sla/targets — admin only: create or update a single queue's SLA target ("Add Queue") */
+    public function saveTarget(): void {
+        $this->requireAdmin();
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+
+        if (empty(trim($data['queue_name'] ?? ''))) {
+            $this->json(['error' => 'Queue name is required.'], 400);
+        }
+
+        try {
+            (new SlaTarget())->createOrUpdateManual($data);
+            $this->json(['message' => 'Queue saved']);
+        } catch (\Throwable $e) {
+            $this->json(['error' => 'Could not save this queue: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /** POST /sla/targets/delete — admin only: body { id } */
+    public function deleteTarget(): void {
+        $this->requireAdmin();
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        $id = (int) ($data['id'] ?? 0);
+        if (!$id) {
+            $this->json(['error' => 'Missing id'], 400);
+        }
+        (new SlaTarget())->delete($id);
+        $this->json(['message' => 'Queue deleted']);
+    }
+
+    /** POST /sla/link-desk-company — admin only: body { desk_id, company_id|null } */
+    public function linkDeskCompany(): void {
+        $this->requireAdmin();
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        $deskId = (int) ($data['desk_id'] ?? 0);
+        if (!$deskId) {
+            $this->json(['error' => 'Missing desk_id'], 400);
+        }
+        $companyId = !empty($data['company_id']) ? (int) $data['company_id'] : null;
+        (new Desk())->linkCompany($deskId, $companyId);
+        $this->json(['message' => 'Desk linked']);
+    }
+
     // ---------------------------------------------------------------
     // Dashboards
     // ---------------------------------------------------------------
@@ -75,7 +123,8 @@ class SlaController extends Controller {
         $deskName  = isset($_GET['desk_name']) && $_GET['desk_name'] !== '' ? $_GET['desk_name'] : null;
 
         $rows = (new SlaData())->getQueueAggregates($dateFrom, $dateTo, $companyId, $deskName);
-        $this->json($this->buildDashboard($rows));
+        $series = (new SlaData())->getDailySeries($dateFrom, $dateTo, $companyId, $deskName);
+        $this->json(array_merge($this->buildDashboard($rows), ['series' => $series]));
     }
 
     /** GET /sla/dashboard/mine — supervisor: auto-scoped to their desk's company */
@@ -100,7 +149,8 @@ class SlaController extends Controller {
         $deskName = isset($_GET['desk_name']) && $_GET['desk_name'] !== '' ? $_GET['desk_name'] : null;
 
         $rows = (new SlaData())->getQueueAggregates($dateFrom, $dateTo, (int) $desk['company_id'], $deskName);
-        $this->json($this->buildDashboard($rows));
+        $series = (new SlaData())->getDailySeries($dateFrom, $dateTo, (int) $desk['company_id'], $deskName);
+        $this->json(array_merge($this->buildDashboard($rows), ['series' => $series]));
     }
 
     // ---------------------------------------------------------------

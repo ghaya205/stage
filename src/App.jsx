@@ -7,6 +7,7 @@ import Login               from './pages/auth/Login';
 import Register            from './pages/auth/Register';
 import SupervisorDashboard from './pages/supervisor/SupervisorDashboard';
 import AdminDashboard      from './pages/admin/AdminDashboard';
+import SlaQueuesPage       from './pages/sla/SlaQueuesPage';
 import UserApprovals       from './pages/admin/UserApprovals';
 import AdminManagement     from './pages/admin/AdminManagement';
 import ProfilePage         from './pages/profile/ProfilePage';
@@ -65,6 +66,7 @@ function AppRoutes() {
       <Route path="/supervisor/settings"       element={<RoleRoute allowedRoleId={2}><SettingsPage /></RoleRoute>} />
 
       <Route path="/admin/dashboard"      element={<RoleRoute allowedRoleId={3}><AdminDashboard /></RoleRoute>} />
+      <Route path="/admin/sla-queues"     element={<RoleRoute allowedRoleId={3}><SlaQueuesPage /></RoleRoute>} />
       <Route path="/admin/user-approvals" element={<RoleRoute allowedRoleId={3}><UserApprovals /></RoleRoute>} />
       <Route path="/admin/management"     element={<RoleRoute allowedRoleId={3}><AdminManagement /></RoleRoute>} />
       <Route path="/admin/requests"       element={<RoleRoute allowedRoleId={3}><RequestsPage /></RoleRoute>} />

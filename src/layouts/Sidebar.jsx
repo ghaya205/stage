@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Settings, LogOut, Shield, Users, FileText,
-  Award, Briefcase, Folder, HeartPulse, User as UserIcon,
+  Award, Briefcase, Folder, HeartPulse, User as UserIcon, ListChecks,
 } from 'lucide-react';
 import dxcLogo from '../assets/dxclogo.png';
 
@@ -63,6 +63,7 @@ const roleMenus = {
       items: [
         { icon: Users,  label: 'User Approvals', path: '/admin/user-approvals' },
         { icon: Shield, label: 'Management',     path: '/admin/management' },
+        { icon: ListChecks, label: 'SLA Queues', path: '/admin/sla-queues' },
         { icon: UserIcon, label: 'Profile',      path: '/admin/profile' },
         { icon: Settings, label: 'Settings',     path: '/admin/settings' },
       ],

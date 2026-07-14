@@ -389,6 +389,40 @@ export async function fetchSlaCompanies(token) {
   return res.json();
 }
 
+export async function fetchSlaTargets(token) {
+  const res = await fetch(`${BASE}/sla/targets`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function createSlaTarget(token, payload) {
+  const res = await fetch(`${BASE}/sla/targets`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+}
+
+export async function deleteSlaTarget(token, id) {
+  const res = await fetch(`${BASE}/sla/targets/delete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ id }),
+  });
+  return res.json();
+}
+
+export async function linkDeskCompany(token, payload) {
+  const res = await fetch(`${BASE}/sla/link-desk-company`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+}
+
 export async function fetchAdminSlaDashboard(token, { companyId, dateFrom, dateTo, deskName } = {}) {
   const params = new URLSearchParams();
   if (companyId) params.set('company_id', companyId);

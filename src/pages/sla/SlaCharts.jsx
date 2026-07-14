@@ -78,34 +78,27 @@ export function DonutChart({ title, segments, size = 132, centerLabel }) {
 }
 
 /**
- * Simple line/area "courbe" chart comparing two series (e.g. handled vs abandoned)
- * over a list of dates. Pure SVG, no dependency.
+ * Grouped bar chart ("rectangles") — two bars per group (e.g. Handled vs Abandoned),
+ * one group per year / month / week / day depending on the caller's chosen granularity.
  */
-export function TrendChart({ points, seriesA, seriesB, height = 220 }) {
+export function BarChart({ groups, seriesA, seriesB, height = 220 }) {
   const width = 640;
   const padL = 40, padR = 12, padT = 16, padB = 26;
   const innerW = width - padL - padR;
   const innerH = height - padT - padB;
 
-  if (!points || points.length === 0) {
-    return <div className="sla-trend-empty">No time-series data for this period yet.</div>;
+  if (!groups || groups.length === 0) {
+    return <div className="sla-trend-empty">No data for this period yet.</div>;
   }
 
-  const allValues = points.flatMap((p) => [p[seriesA.key] ?? 0, p[seriesB.key] ?? 0]);
-  const maxV = Math.max(1, ...allValues);
+  const maxV = Math.max(1, ...groups.flatMap((g) => [g.a || 0, g.b || 0]));
+  const groupW = innerW / groups.length;
+  const barW = Math.min(28, groupW * 0.32);
+  const gap = 4;
 
-  const x = (i) => padL + (points.length === 1 ? innerW / 2 : (i / (points.length - 1)) * innerW);
   const y = (v) => padT + innerH - (v / maxV) * innerH;
+  const barH = (v) => innerH - (y(v) - padT);
 
-  const linePath = (key) =>
-    points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${y(p[key] ?? 0)}`).join(' ');
-
-  const areaPath = (key) => {
-    const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${y(p[key] ?? 0)}`).join(' ');
-    return `${line} L ${x(points.length - 1)} ${padT + innerH} L ${x(0)} ${padT + innerH} Z`;
-  };
-
-  const step = Math.max(1, Math.ceil(points.length / 7));
   const gridLines = [0, 0.25, 0.5, 0.75, 1];
 
   return (
@@ -114,17 +107,18 @@ export function TrendChart({ points, seriesA, seriesB, height = 220 }) {
         {gridLines.map((g) => (
           <line key={g} x1={padL} x2={width - padR} y1={padT + innerH * (1 - g)} y2={padT + innerH * (1 - g)} className="sla-trend-grid" />
         ))}
-        <path d={areaPath(seriesB.key)} fill={seriesB.color} opacity="0.10" />
-        <path d={areaPath(seriesA.key)} fill={seriesA.color} opacity="0.10" />
-        <path d={linePath(seriesB.key)} fill="none" stroke={seriesB.color} strokeWidth="2" />
-        <path d={linePath(seriesA.key)} fill="none" stroke={seriesA.color} strokeWidth="2" />
-        {points.map((p, i) => (
-          i % step === 0 && (
-            <text key={p.date} x={x(i)} y={height - 6} textAnchor="middle" className="sla-trend-axis-label">
-              {p.date}
-            </text>
-          )
-        ))}
+        {groups.map((grp, i) => {
+          const cx = padL + groupW * i + groupW / 2;
+          const xa = cx - barW - gap / 2;
+          const xb = cx + gap / 2;
+          return (
+            <g key={grp.label}>
+              <rect x={xa} y={y(grp.a || 0)} width={barW} height={barH(grp.a || 0)} fill={seriesA.color} rx="2" />
+              <rect x={xb} y={y(grp.b || 0)} width={barW} height={barH(grp.b || 0)} fill={seriesB.color} rx="2" />
+              <text x={cx} y={height - 6} textAnchor="middle" className="sla-trend-axis-label">{grp.label}</text>
+            </g>
+          );
+        })}
         <text x={4} y={padT + 4} className="sla-trend-axis-label">{maxV}</text>
         <text x={4} y={padT + innerH} className="sla-trend-axis-label">0</text>
       </svg>

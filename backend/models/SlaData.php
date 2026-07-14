@@ -252,4 +252,39 @@ class SlaData {
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
+
+    /**
+     * Daily totals (handled vs abandoned) for the "courbe" trend chart.
+     * Same filters as getQueueAggregates, grouped by calendar date instead of queue.
+     */
+    public function getDailySeries(?string $dateFrom, ?string $dateTo, ?int $companyId = null, ?string $deskName = null): array {
+        $where  = [];
+        $params = [];
+
+        if ($dateFrom) { $where[] = "STR_TO_DATE(d.StartDate, '%c/%e/%Y') >= ?"; $params[] = $dateFrom; }
+        if ($dateTo)   { $where[] = "STR_TO_DATE(d.StartDate, '%c/%e/%Y') <= ?"; $params[] = $dateTo; }
+        if ($companyId) { $where[] = 't.company_id = ?'; $params[] = $companyId; }
+        if ($deskName)  { $where[] = 't.desk_name = ?';  $params[] = $deskName; }
+
+        $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
+
+        $sql = "SELECT
+                    STR_TO_DATE(d.StartDate, '%c/%e/%Y') AS the_date,
+                    " . self::sumCount('d', 'Contacts handled incoming') . " AS handled,
+                    " . self::sumCount('d', 'Contacts abandoned') . " AS abandoned,
+                    COALESCE(
+                        " . self::sumCount('d', 'Contacts queued') . ",
+                        " . self::sumCount('d', 'Contacts handled incoming') . " + " . self::sumCount('d', 'Contacts abandoned') . "
+                    ) AS offered
+                FROM sla_data d
+                JOIN sla_targets t ON t.queue_name = d.Queue
+                LEFT JOIN companies c ON c.id = t.company_id
+                $whereSql
+                GROUP BY the_date
+                ORDER BY the_date ASC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
 }

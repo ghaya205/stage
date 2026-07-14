@@ -1,14 +1,33 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Phone, PhoneMissed, Trophy, TrendingUp, Zap, Gauge, Clock3,
-  ChevronDown, ChevronRight, Building2, Upload, RefreshCw, AlertCircle, Radio,
+  ChevronDown, ChevronRight, Building2, RefreshCw, AlertCircle, Radio, Settings2,
 } from 'lucide-react';
 import {
-  fetchSlaCompanies, fetchAdminSlaDashboard, fetchSupervisorSlaDashboard,
-  importSlaTargets, importSlaData, fetchDesks,
+  fetchSlaCompanies, fetchAdminSlaDashboard, fetchSupervisorSlaDashboard, fetchDesks,
 } from '../../services/api';
-import SlaFilterBar, { computeDateRange, emptyFilters } from './SlaFilterBar';
+import SlaFilterBar, { computeDateRange, emptyFilters, groupSeriesForChart } from './SlaFilterBar';
+import { DonutChart, BarChart } from './SlaCharts';
 import './SlaDashboardView.css';
+
+const DONUT_PALETTE = ['#E8643A', '#F5A05A', '#7B8FD4', '#4CB3A4', '#C79FE0', '#F0C36D', '#8FA0B3'];
+
+function topDesksByVolume(companyList, max = 6) {
+  const desks = companyList.flatMap((c) => c.children || []);
+  const sorted = [...desks].sort((a, b) => (b.offered || 0) - (a.offered || 0));
+  const top = sorted.slice(0, max);
+  const rest = sorted.slice(max);
+  const segments = top.map((d, i) => ({ label: d.name, value: d.offered || 0, color: DONUT_PALETTE[i % DONUT_PALETTE.length] }));
+  if (rest.length) {
+    segments.push({
+      label: 'Other',
+      value: rest.reduce((s, d) => s + (d.offered || 0), 0),
+      color: '#D8DCE6',
+    });
+  }
+  return segments;
+}
 
 function pct(v) {
   if (v === null || v === undefined || Number.isNaN(v)) return '—';
@@ -115,46 +134,6 @@ function CompanyCard({ company, defaultOpen }) {
   );
 }
 
-function ImportPanel({ token, onImported }) {
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState(null);
-
-  async function handleFile(e, kind) {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-    setBusy(true);
-    setMsg(null);
-    try {
-      const res = kind === 'targets' ? await importSlaTargets(token, file) : await importSlaData(token, file);
-      if (res.error) setMsg({ ok: false, text: res.error });
-      else {
-        setMsg({ ok: true, text: `Imported ${res.imported} rows${res.skipped ? `, skipped ${res.skipped}` : ''}.` });
-        onImported?.();
-      }
-    } catch {
-      setMsg({ ok: false, text: 'Import failed — check the file and try again.' });
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div className="sla-import-panel">
-      <label className="sla-import-btn">
-        <Upload size={14} /> Import SLA targets (Sheet1 CSV)
-        <input type="file" accept=".csv" hidden onChange={(e) => handleFile(e, 'targets')} disabled={busy} />
-      </label>
-      <label className="sla-import-btn">
-        <Upload size={14} /> Import raw interval data (CSV)
-        <input type="file" accept=".csv" hidden onChange={(e) => handleFile(e, 'data')} disabled={busy} />
-      </label>
-      {busy && <span className="sla-import-status"><RefreshCw size={13} className="sla-spin" /> Importing…</span>}
-      {msg && <span className={`sla-import-status ${msg.ok ? 'sla-import-status--ok' : 'sla-import-status--bad'}`}>{msg.text}</span>}
-    </div>
-  );
-}
-
 function RealTimeDataPlaceholder() {
   return (
     <div className="sla-state-msg sla-realtime-placeholder">
@@ -229,7 +208,9 @@ export default function SlaDashboardView({ mode, token }) {
         <>
           {mode === 'admin' && (
             <div className="sla-toolbar sla-toolbar--import">
-              <ImportPanel token={token} onImported={load} />
+              <Link to="/admin/sla-queues" className="sla-manage-queues-link">
+                <Settings2 size={14} /> Manage Queues &amp; Import Data
+              </Link>
             </div>
           )}
 
@@ -260,6 +241,27 @@ export default function SlaDashboardView({ mode, token }) {
                   sub={highlights.best_efficiency?.name} />
                 <StatCard icon={Clock3} label="Shortest Hold" value={highlights.shortest_hold ? secs(highlights.shortest_hold.value) : '—'}
                   sub={highlights.shortest_hold?.name} />
+              </div>
+
+              <div className="sla-charts-row">
+                <DonutChart
+                  title="Handled vs Abandoned"
+                  centerLabel={overview?.offered ?? 0}
+                  segments={[
+                    { label: 'Handled', value: overview?.handled ?? 0, color: '#7B8FD4' },
+                    { label: 'Abandoned', value: overview?.abandoned ?? 0, color: '#E8643A' },
+                  ]}
+                />
+                <DonutChart
+                  title="Volume by Desk"
+                  centerLabel={overview?.offered ?? 0}
+                  segments={topDesksByVolume(companyList)}
+                />
+                <BarChart
+                  groups={groupSeriesForChart(data?.series, filters)}
+                  seriesA={{ key: 'handled', label: 'Handled', color: '#E8643A' }}
+                  seriesB={{ key: 'abandoned', label: 'Abandoned', color: '#9CA3AF' }}
+                />
               </div>
 
               <div className="sla-companies-list">

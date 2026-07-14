@@ -98,6 +98,33 @@ class SlaTarget {
         }
     }
 
+    public function delete(int $id): bool {
+        $stmt = $this->db->prepare("DELETE FROM sla_targets WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
+    /** Used by the "Add Queue" manual form (percents come in as 0-100, not 0-1). */
+    public function createOrUpdateManual(array $data): void {
+        $pct = function ($v) {
+            if ($v === null || $v === '') return null;
+            return round(((float) $v) / 100, 4);
+        };
+
+        $this->upsert([
+            'queue_name'      => $data['queue_name']    ?? '',
+            'desk_name'       => $data['desk_name']     ?? '',
+            'account'         => $data['company_name']  ?? '',
+            'timeframe_bh'    => self::parseInt((string) ($data['timeframe_bh']  ?? '')),
+            'timeframe_ooh'   => self::parseInt((string) ($data['timeframe_ooh'] ?? '')),
+            'sla_type'        => $data['sla_type']       ?: null,
+            'abd_type'        => $data['abd_type']       ?: null,
+            'other_type'      => $data['other_type']     ?: null,
+            'target_ans_rate' => $pct($data['target_ans_rate'] ?? null),
+            'target_abd_rate' => $pct($data['target_abd_rate'] ?? null),
+            'target_other'    => $pct($data['target_other']    ?? null),
+        ]);
+    }
+
     public function importSheet1Csv(string $filePath): array {
         $handle = fopen($filePath, 'r');
         if (!$handle) throw new \RuntimeException('Could not open uploaded file');

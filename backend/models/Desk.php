@@ -73,6 +73,12 @@ class Desk {
         ]);
     }
 
+    /** Partial update — only touches company_id, leaves everything else on the desk untouched. */
+    public function linkCompany(int $id, ?int $companyId): bool {
+        $stmt = $this->db->prepare("UPDATE desks SET company_id = ? WHERE id = ?");
+        return $stmt->execute([$companyId, $id]);
+    }
+
     private function decode(array $row): array {
         $row['languages']      = json_decode($row['languages'] ?? '[]', true) ?? [];
         $row['call_questions'] = json_decode($row['call_questions'] ?? '[]', true) ?? [];

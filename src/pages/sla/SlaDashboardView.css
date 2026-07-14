@@ -66,6 +66,22 @@
 }
 .sla-toolbar--import { justify-content: flex-end; }
 
+.sla-manage-queues-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--bg-white);
+  text-decoration: none;
+  transition: var(--transition);
+}
+.sla-manage-queues-link:hover { border-color: var(--dxc-coral); color: var(--dxc-coral); }
+
 .sla-select {
   padding: 8px 12px;
   border: 1px solid var(--border);
@@ -78,6 +94,23 @@
 
 .sla-realtime-placeholder { padding: 60px 30px; }
 .sla-realtime-sub { font-size: 12px; color: var(--text-secondary); }
+
+.sla-charts-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) minmax(320px, 2fr);
+  gap: 16px;
+  align-items: stretch;
+}
+.sla-charts-row > * {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 14px;
+}
+@media (max-width: 900px) {
+  .sla-charts-row { grid-template-columns: 1fr; }
+}
 
 .sla-import-panel { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
