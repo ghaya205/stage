@@ -7,6 +7,19 @@ RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
 SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 
+# Disable PHP's implicit output buffering and gzip compression: with either
+# one on, the SSE stream (/sla/stream) gets fully buffered and only flushes
+# to the browser when the connection closes, defeating the whole point of
+# real-time push. Harmless for the normal JSON endpoints (they just print
+# once and exit).
+<IfModule mod_php.c>
+    php_value output_buffering "0"
+    php_flag  zlib.output_compression Off
+</IfModule>
+<IfModule mod_deflate.c>
+    SetEnvIfNoCase Request_URI "sla/stream" no-gzip
+</IfModule>
+
 # Handle CORS preflight before PHP runs
 <IfModule mod_headers.c>
     Header always set Access-Control-Allow-Origin "*"

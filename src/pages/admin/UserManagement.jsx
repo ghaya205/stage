@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
-  fetchDesks, createDesk, updateDesk, adminCreateUser,
+  fetchDesks, createDesk, updateDesk, adminCreateUser, fetchSlaCompanies,
   fetchAllQualifications, adminDeleteQualification, approveQualification, assetUrl,
 } from '../../services/api';
 import {
@@ -340,6 +341,7 @@ function DeskManagement() {
   const { token } = useAuth();
   const [mode, setMode] = useState('create');
   const [desks, setDesks] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [selectedId, setSelectedId] = useState('');
   const [form, setForm] = useState(emptyDeskForm());
   const [msg, setMsg] = useState('');
@@ -348,6 +350,7 @@ function DeskManagement() {
 
   useEffect(() => {
     loadDesks();
+    fetchSlaCompanies(token).then((data) => setCompanies(data.companies || []));
   }, [token]);
 
   async function loadDesks() {
@@ -414,7 +417,10 @@ function DeskManagement() {
     const payload = {
       name: form.name.trim(),
       acronym: form.acronym.trim(),
-     
+      // company_id is intentionally omitted here — it's managed exclusively from
+      // SLA Queues > "Link desks to companies" now, to avoid two editable places
+      // for the same field. Not sending the key at all lets the backend leave
+      // whatever link is already in place untouched.
       languages: form.languages,
       call_questions: form.call_questions,
       case_questions: form.case_questions,
@@ -476,7 +482,20 @@ function DeskManagement() {
           </div>
         </div>
 
-       
+        <div className="profile-field mgmt-field-spaced">
+          <label>SLA Company (links this desk to the SLA dashboard)</label>
+          <div className="profile-input mgmt-readonly-field">
+            {form.company_id
+              ? (companies.find((c) => String(c.id) === String(form.company_id))?.name ?? 'Linked company')
+              : '-- Not linked --'}
+          </div>
+          <p className="mgmt-field-hint">
+            This link is managed from <Link to="/admin/sla-queues">SLA Queues → Link desks to companies</Link>,
+            so it isn't editable here anymore. Once linked, supervisors assigned to
+            this desk (in their profile's "Assigned Project") will see that company's SLA data
+            on their Team SLA Dashboard.
+          </p>
+        </div>
 
         <div className="profile-field">
           <label>Desk Languages</label>

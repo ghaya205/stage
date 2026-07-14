@@ -66,6 +66,12 @@ $router->add('POST', '/sla/targets/delete',   'SlaController', 'deleteTarget');
 $router->add('POST', '/sla/link-desk-company','SlaController', 'linkDeskCompany');
 $router->add('GET',  '/sla/dashboard',        'SlaController', 'adminDashboard');
 $router->add('GET',  '/sla/dashboard/mine',   'SlaController', 'supervisorDashboard');
+$router->add('GET',  '/sla/stream',           'SlaController', 'stream');
+
+// Case Assessment / QA Audit
+$router->add('POST', '/case-audits',        'CaseAuditController', 'create');
+$router->add('GET',  '/case-audits',        'CaseAuditController', 'forAgent');
+$router->add('GET',  '/case-audits/export', 'CaseAuditController', 'exportForAgent');
 
 // Insurance / care bulletins
 $router->add('POST', '/insurance/create', 'InsuranceController', 'create');

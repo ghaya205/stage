@@ -154,6 +154,140 @@ class SlaController extends Controller {
     }
 
     // ---------------------------------------------------------------
+    // Real-time (SSE)
+    // ---------------------------------------------------------------
+
+    /**
+     * GET /sla/stream?token=...&company_id=&date_from=&date_to=&desk_name=
+     * Server-Sent Events: pushes a fresh dashboard payload whenever new rows
+     * land in sla_data, without the client needing to poll or reload.
+     *
+     * Token is read from the query string (not the Authorization header)
+     * because the browser's EventSource API cannot send custom headers.
+     */
+    public function stream(): void {
+        // Never let PHP kill this connection on its own — the client controls
+        // when to disconnect (closing the tab / navigating away).
+        set_time_limit(0);
+        ignore_user_abort(true);
+
+        $decoded = $this->requireAuthFromQuery();
+
+        // implicit_flush can be toggled at runtime (unlike output_buffering,
+        // which needs the .htaccess/php.ini setting) — belt-and-braces so
+        // every echo below reaches the browser immediately instead of sitting
+        // in PHP's internal buffer.
+        @ini_set('implicit_flush', '1');
+        ob_implicit_flush(true);
+        if (function_exists('apache_setenv')) {
+            @apache_setenv('no-gzip', '1');
+        }
+
+        $companyId = isset($_GET['company_id']) && $_GET['company_id'] !== '' ? (int) $_GET['company_id'] : null;
+        $dateFrom  = $_GET['date_from'] ?? null;
+        $dateTo    = $_GET['date_to']   ?? null;
+        $deskName  = isset($_GET['desk_name']) && $_GET['desk_name'] !== '' ? $_GET['desk_name'] : null;
+
+        $role = (int) $decoded->role_id;
+        if ($role === 2) {
+            // Supervisor: force-scope to their own desk's company, same rule as /sla/dashboard/mine.
+            $user = (new User())->findById((int) $decoded->sub);
+            $desk = $user && !empty($user['desk_id']) ? (new Desk())->find((int) $user['desk_id']) : null;
+            if (!$desk || empty($desk['company_id'])) {
+                $this->json(['error' => 'Your desk is not linked to a company yet. Ask an admin to link it.'], 400);
+            }
+            $companyId = (int) $desk['company_id'];
+        } elseif ($role !== 3) {
+            $this->json(['error' => 'Forbidden'], 403);
+        }
+
+        header('Content-Type: text/event-stream');
+        header('Cache-Control: no-cache');
+        header('X-Accel-Buffering: no'); // in case a reverse proxy sits in front and buffers
+        header('Connection: keep-alive');
+        while (ob_get_level() > 0) { ob_end_flush(); }
+
+        $slaModel = new SlaData();
+        $lastMaxId = -1; // force an immediate first push
+        $started = time();
+
+        while (true) {
+            if (connection_aborted()) {
+                break;
+            }
+            // Safety cutoff: ask the browser to reconnect after an hour rather
+            // than holding one PHP worker/process open forever.
+            if (time() - $started > 3600) {
+                echo "event: reconnect\ndata: {}\n\n";
+                @ob_flush(); @flush();
+                break;
+            }
+
+            $maxId = $slaModel->getMaxId();
+            if ($maxId !== $lastMaxId) {
+                $lastMaxId = $maxId;
+
+                $rows      = $slaModel->getQueueAggregates($dateFrom, $dateTo, $companyId, $deskName);
+                $series    = $slaModel->getDailySeries($dateFrom, $dateTo, $companyId, $deskName);
+                $dashboard = array_merge($this->buildDashboard($rows), ['series' => $series]);
+                $dashboard['breaches'] = $this->detectBreaches($rows);
+
+                echo "event: sla_update\n";
+                echo 'data: ' . json_encode($dashboard) . "\n\n";
+            } else {
+                // Comment ping keeps the connection alive through proxies/timeouts.
+                echo ": keep-alive\n\n";
+            }
+
+            @ob_flush();
+            @flush();
+            sleep(3);
+        }
+    }
+
+    /**
+     * Queues currently breaching their SLA target — what image/spec calls
+     * "un ticket franchit un seuil de SLA" (answer rate below target, or
+     * abandon rate above target).
+     */
+    private function detectBreaches(array $rows): array {
+        $breaches = [];
+        foreach ($rows as $row) {
+            $offered = (int) ($row['offered'] ?? 0);
+            if ($offered <= 0) continue;
+
+            $ansRate = ((int) $row['answered_in_sla']) / $offered;
+            $abdRate = ((int) $row['abandoned']) > 0
+                ? ((int) $row['abandoned_in_sla']) / max(1, (int) $row['abandoned'])
+                : 0;
+
+            $target = $row['target_ans_rate'] !== null ? (float) $row['target_ans_rate'] : null;
+            if ($target !== null && $ansRate < $target) {
+                $breaches[] = [
+                    'queue_name'   => $row['queue_name'],
+                    'desk_name'    => $row['desk_name'],
+                    'metric'       => 'answer_rate',
+                    'actual'       => round($ansRate, 3),
+                    'target'       => $target,
+                ];
+            }
+        }
+        return $breaches;
+    }
+
+    private function requireAuthFromQuery(): object {
+        $token = $_GET['token'] ?? '';
+        if (!$token) {
+            $this->json(['error' => 'No token provided'], 401);
+        }
+        try {
+            return JWT::decode($token, new Key(JWT_SECRET, 'HS256'));
+        } catch (\Exception $e) {
+            $this->json(['error' => 'Invalid or expired token'], 401);
+        }
+    }
+
+    // ---------------------------------------------------------------
     // Aggregation helper (queue rows -> desk -> company -> overview)
     // ---------------------------------------------------------------
 

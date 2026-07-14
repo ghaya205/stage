@@ -135,12 +135,82 @@ function CompanyCard({ company, defaultOpen }) {
   );
 }
 
-function RealTimeDataPlaceholder() {
+function extractBreaches(data) {
+  const breaches = [];
+  for (const company of data?.companies || []) {
+    for (const desk of company.children || []) {
+      for (const queue of desk.children || []) {
+        if (queue.meets_answer_target === false) {
+          breaches.push({ queue_name: queue.name, desk_name: desk.name });
+        }
+      }
+    }
+  }
+  return breaches;
+}
+
+function LiveDashboard({ connected, data, breaches }) {
+  const overview = data?.overview;
+  const highlights = data?.highlights || {};
+  const companyList = data?.companies || [];
+
   return (
-    <div className="sla-state-msg sla-realtime-placeholder">
-      <Radio size={24} />
-      <p>Real Time Data is coming soon.</p>
-      <span className="sla-realtime-sub">This view will show live queue activity as it happens.</span>
+    <div className="sla-live-dashboard">
+      <div className={`sla-live-status ${connected ? 'sla-live-status--on' : 'sla-live-status--off'}`}>
+        <Radio size={16} />
+        {connected ? 'Live — updates automatically as new data arrives' : 'Connecting…'}
+      </div>
+
+      {breaches.length > 0 && (
+        <div className="sla-state-msg sla-state-msg--error">
+          <AlertCircle size={18} />
+          <p>{breaches.length} queue{breaches.length > 1 ? 's' : ''} currently below their SLA target: {breaches.map((b) => b.queue_name).join(', ')}</p>
+        </div>
+      )}
+
+      {!data && (
+        <div className="sla-state-msg"><RefreshCw size={20} className="sla-spin" /> Waiting for live data…</div>
+      )}
+
+      {data && (
+        <>
+          <div className="sla-stats-grid">
+            <StatCard icon={Phone} label="Total Handled" value={overview?.handled ?? 0} sub={`of ${overview?.offered ?? 0} offered`} />
+            <StatCard icon={PhoneMissed} label="Total Abandoned" value={overview?.abandoned ?? 0}
+              sub={overview?.offered ? `${((overview.abandoned / overview.offered) * 100).toFixed(1)}% of offered` : null} />
+            <StatCard icon={Trophy} label="Best Answer Rate" value={highlights.best_answer_rate ? pct(highlights.best_answer_rate.value) : '—'}
+              sub={highlights.best_answer_rate?.name} />
+            <StatCard icon={TrendingUp} label="Highest Volume" value={highlights.highest_volume?.value ?? '—'} sub={highlights.highest_volume?.name} />
+            <StatCard icon={Zap} label="Fastest Response" value={highlights.fastest_response ? secs(highlights.fastest_response.value) : '—'}
+              sub={highlights.fastest_response?.name} />
+            <StatCard icon={Gauge} label="Best Efficiency" value={highlights.best_efficiency ? secs(highlights.best_efficiency.value) : '—'}
+              sub={highlights.best_efficiency?.name} />
+            <StatCard icon={Clock3} label="Shortest Hold" value={highlights.shortest_hold ? secs(highlights.shortest_hold.value) : '—'}
+              sub={highlights.shortest_hold?.name} />
+          </div>
+
+          <div className="sla-charts-row">
+            <DonutChart
+              title="Handled vs Abandoned"
+              centerLabel={overview?.offered ?? 0}
+              segments={[
+                { label: 'Handled', value: overview?.handled ?? 0, color: '#7B8FD4' },
+                { label: 'Abandoned', value: overview?.abandoned ?? 0, color: '#E8643A' },
+              ]}
+            />
+            <DonutChart
+              title="Volume by Desk"
+              centerLabel={overview?.offered ?? 0}
+              segments={topDesksByVolume(companyList)}
+            />
+            <BarChart
+              groups={groupSeriesForChart(data?.series, emptyFilters())}
+              seriesA={{ key: 'handled', label: 'Handled', color: '#E8643A' }}
+              seriesB={{ key: 'abandoned', label: 'Abandoned', color: '#9CA3AF' }}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -153,6 +223,10 @@ export default function SlaDashboardView({ mode, token }) {
   const [filters, setFilters] = useState(emptyFilters());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [liveData, setLiveData] = useState(null);
+  const [liveConnected, setLiveConnected] = useState(false);
+  const [liveBreaches, setLiveBreaches] = useState([]);
 
   const { dateFrom, dateTo } = computeDateRange(filters);
 
@@ -185,6 +259,42 @@ export default function SlaDashboardView({ mode, token }) {
     if (tab === 'historical') load();
   }, [load, tab]);
 
+  useEffect(() => {
+    if (tab !== 'realtime') {
+      setLiveConnected(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const poll = async () => {
+      try {
+        const res = mode === 'admin'
+          ? await fetchAdminSlaDashboard(token, { companyId: filters.companyId, dateFrom, dateTo, deskName: filters.deskName })
+          : await fetchSupervisorSlaDashboard(token, { dateFrom, dateTo, deskName: filters.deskName });
+        if (cancelled) return;
+        if (res.error) {
+          setLiveConnected(false);
+          return;
+        }
+        setLiveData(res);
+        setLiveBreaches(extractBreaches(res));
+        setLiveConnected(true);
+      } catch {
+        if (!cancelled) setLiveConnected(false);
+      }
+    };
+
+    poll(); // fetch immediately, then keep refreshing
+    const intervalId = setInterval(poll, 4000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(intervalId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, token, mode, filters.companyId, filters.deskName, dateFrom, dateTo]);
+
   const overview = data?.overview;
   const highlights = data?.highlights || {};
   const companyList = data?.companies || [];
@@ -203,7 +313,9 @@ export default function SlaDashboardView({ mode, token }) {
         loading={loading}
       />
 
-      {tab === 'realtime' && <RealTimeDataPlaceholder />}
+      {tab === 'realtime' && (
+        <LiveDashboard connected={liveConnected} data={liveData} breaches={liveBreaches} />
+      )}
 
       {tab === 'historical' && (
         <>

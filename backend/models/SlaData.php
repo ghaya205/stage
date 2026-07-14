@@ -253,6 +253,12 @@ class SlaData {
         return $stmt->fetchAll();
     }
 
+    /** Latest row id in sla_data — used by the SSE stream to detect new imports without reloading everything. */
+    public function getMaxId(): int {
+        $stmt = $this->db->query("SELECT COALESCE(MAX(id), 0) FROM sla_data");
+        return (int) $stmt->fetchColumn();
+    }
+
     /**
      * Daily totals (handled vs abandoned) for the "courbe" trend chart.
      * Same filters as getQueueAggregates, grouped by calendar date instead of queue.

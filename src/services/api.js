@@ -446,6 +446,18 @@ export async function fetchSupervisorSlaDashboard(token, { dateFrom, dateTo, des
   return res.json();
 }
 
+// token travels as a query param here (not a header) because the browser's
+// EventSource API cannot attach custom headers to its request.
+export function slaStreamUrl(token, { companyId, dateFrom, dateTo, deskName } = {}) {
+  const params = new URLSearchParams();
+  params.set('token', token);
+  if (companyId) params.set('company_id', companyId);
+  if (dateFrom) params.set('date_from', dateFrom);
+  if (dateTo) params.set('date_to', dateTo);
+  if (deskName) params.set('desk_name', deskName);
+  return `${BASE}/sla/stream?${params.toString()}`;
+}
+
 export async function importSlaTargets(token, file) {
   const formData = new FormData();
   formData.append('file', file);
@@ -466,4 +478,40 @@ export async function importSlaData(token, file) {
     body: formData,
   });
   return res.json();
+}
+
+// ---- Case Assessment / QA Audit ----
+
+export async function createCaseAudit(token, payload) {
+  const res = await fetch(`${BASE}/case-audits`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+}
+
+export async function fetchCaseAudits(token, agentId) {
+  const res = await fetch(`${BASE}/case-audits?agent_id=${agentId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function downloadCaseAuditsCsv(token, agentId) {
+  const res = await fetch(`${BASE}/case-audits/export?agent_id=${agentId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `case_audits_agent_${agentId}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
