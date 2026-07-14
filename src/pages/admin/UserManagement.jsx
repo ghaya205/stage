@@ -348,7 +348,6 @@ function DeskManagement() {
 
   useEffect(() => {
     loadDesks();
-    // fetchSlaCompanies(token).then((data) => setCompanies(data.companies || []));
   }, [token]);
 
   async function loadDesks() {
@@ -415,10 +414,7 @@ function DeskManagement() {
     const payload = {
       name: form.name.trim(),
       acronym: form.acronym.trim(),
-      // company_id is intentionally omitted here — it's managed exclusively from
-      // SLA Queues > "Link desks to companies" now, to avoid two editable places
-      // for the same field. Not sending the key at all lets the backend leave
-      // whatever link is already in place untouched.
+     
       languages: form.languages,
       call_questions: form.call_questions,
       case_questions: form.case_questions,
@@ -480,8 +476,7 @@ function DeskManagement() {
           </div>
         </div>
 
-        
-          
+       
 
         <div className="profile-field">
           <label>Desk Languages</label>

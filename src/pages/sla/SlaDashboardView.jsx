@@ -9,6 +9,7 @@ import {
 } from '../../services/api';
 import SlaFilterBar, { computeDateRange, emptyFilters, groupSeriesForChart } from './SlaFilterBar';
 import { DonutChart, BarChart } from './SlaCharts';
+import ImportPanel from './ImportPanel';
 import './SlaDashboardView.css';
 
 const DONUT_PALETTE = ['#E8643A', '#F5A05A', '#7B8FD4', '#4CB3A4', '#C79FE0', '#F0C36D', '#8FA0B3'];
