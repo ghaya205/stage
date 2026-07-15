@@ -114,30 +114,34 @@ export default function SlaFilterBar({
       </div>
 
       <div className="sla-filterbar-controls">
-        <select className="sla-select" value={filters.year} onChange={(e) => set('year', e.target.value)}>
-          <option value="">All Years</option>
-          {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
-        </select>
+        {activeTab === 'historical' && (
+          <>
+            <select className="sla-select" value={filters.year} onChange={(e) => set('year', e.target.value)}>
+              <option value="">All Years</option>
+              {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
 
-        <select className="sla-select" value={filters.month} onChange={(e) => set('month', e.target.value)} disabled={!filters.year}>
-          <option value="">All Months</option>
-          {MONTHS.map((m, i) => <option key={m} value={i}>{m}</option>)}
-        </select>
+            <select className="sla-select" value={filters.month} onChange={(e) => set('month', e.target.value)} disabled={!filters.year}>
+              <option value="">All Months</option>
+              {MONTHS.map((m, i) => <option key={m} value={i}>{m}</option>)}
+            </select>
 
-        <select className="sla-select" value={filters.week} onChange={(e) => set('week', e.target.value)} disabled={!filters.year || filters.month === ''}>
-          <option value="">All Weeks</option>
-          {weekOptions.map((w, i) => <option key={w.label} value={i}>{w.label}</option>)}
-        </select>
+            <select className="sla-select" value={filters.week} onChange={(e) => set('week', e.target.value)} disabled={!filters.year || filters.month === ''}>
+              <option value="">All Weeks</option>
+              {weekOptions.map((w, i) => <option key={w.label} value={i}>{w.label}</option>)}
+            </select>
 
-        <select
-          className="sla-select"
-          value={filters.dayNum}
-          onChange={(e) => set('dayNum', e.target.value)}
-          disabled={!filters.year || filters.month === ''}
-        >
-          <option value="">All Days</option>
-          {Array.from({ length: dayCount }, (_, i) => i + 1).map((d) => <option key={d} value={d}>{d}</option>)}
-        </select>
+            <select
+              className="sla-select"
+              value={filters.dayNum}
+              onChange={(e) => set('dayNum', e.target.value)}
+              disabled={!filters.year || filters.month === ''}
+            >
+              <option value="">All Days</option>
+              {Array.from({ length: dayCount }, (_, i) => i + 1).map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </>
+        )}
 
         <select className="sla-select" value={filters.deskName} onChange={(e) => set('deskName', e.target.value)}>
           <option value="">All Desks</option>

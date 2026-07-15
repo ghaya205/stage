@@ -124,7 +124,11 @@ class SlaController extends Controller {
 
         $rows = (new SlaData())->getQueueAggregates($dateFrom, $dateTo, $companyId, $deskName);
         $series = (new SlaData())->getDailySeries($dateFrom, $dateTo, $companyId, $deskName);
-        $this->json(array_merge($this->buildDashboard($rows), ['series' => $series]));
+        $dashboard = array_merge($this->buildDashboard($rows), ['series' => $series]);
+        if ($dateFrom && $dateFrom === $dateTo) {
+            $dashboard['hourly'] = (new SlaData())->getHourlySeries($dateFrom, $companyId, $deskName);
+        }
+        $this->json($dashboard);
     }
 
     /** GET /sla/dashboard/mine — supervisor: auto-scoped to their desk's company */
@@ -150,7 +154,11 @@ class SlaController extends Controller {
 
         $rows = (new SlaData())->getQueueAggregates($dateFrom, $dateTo, (int) $desk['company_id'], $deskName);
         $series = (new SlaData())->getDailySeries($dateFrom, $dateTo, (int) $desk['company_id'], $deskName);
-        $this->json(array_merge($this->buildDashboard($rows), ['series' => $series]));
+        $dashboard = array_merge($this->buildDashboard($rows), ['series' => $series]);
+        if ($dateFrom && $dateFrom === $dateTo) {
+            $dashboard['hourly'] = (new SlaData())->getHourlySeries($dateFrom, (int) $desk['company_id'], $deskName);
+        }
+        $this->json($dashboard);
     }
 
     // ---------------------------------------------------------------

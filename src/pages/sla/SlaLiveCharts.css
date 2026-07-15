@@ -1,0 +1,138 @@
+.sla-live-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+@media (max-width: 800px) {
+  .sla-live-charts-grid { grid-template-columns: 1fr; }
+}
+
+.sla-live-chart {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 14px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 210px;
+}
+
+.sla-live-chart-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.sla-live-chart-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+.sla-live-chart-svg { width: 100%; height: auto; display: block; flex: 1; }
+
+.sla-live-grid { stroke: #EEF0F5; stroke-width: 1; }
+.sla-live-axis-label { font-size: 8.5px; fill: var(--text-secondary); font-family: inherit; }
+
+.sla-live-target-line {
+  stroke: #9CA3AF;
+  stroke-width: 1.4;
+  stroke-dasharray: 5 4;
+}
+
+.sla-live-trend-line {
+  stroke: var(--dxc-coral);
+  stroke-width: 2;
+}
+.sla-live-trend-dot { fill: var(--dxc-coral); }
+
+.sla-live-bar-target { fill: #D8DCE6; }
+.sla-live-bar-good { fill: #4CB3A4; }
+.sla-live-bar-bad { fill: var(--dxc-coral); }
+
+.sla-live-chart-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+.sla-live-chart-legend span { display: flex; align-items: center; gap: 5px; }
+.sla-live-dot { width: 8px; height: 8px; border-radius: 3px; display: inline-block; flex-shrink: 0; }
+.sla-live-dash { width: 12px; height: 0; border-top: 2px dashed #9CA3AF; display: inline-block; }
+
+.sla-live-heatmap {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+}
+.sla-live-heatcell-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.sla-live-heatcell {
+  width: 100%;
+  height: 60px;
+  border-radius: 3px;
+  transition: transform 0.1s ease;
+}
+.sla-live-heatcell-wrap:hover .sla-live-heatcell { transform: scaleY(1.06); }
+.sla-live-heat-label { font-size: 8.5px; color: var(--text-secondary); }
+
+.sla-live-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  flex: 1;
+}
+.sla-live-table thead tr { background: #f9fafb; }
+.sla-live-table th {
+  padding: 6px 8px;
+  text-align: left;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-secondary);
+}
+.sla-live-table td {
+  padding: 7px 8px;
+  border-top: 1px solid var(--border);
+}
+.sla-live-table-name { font-weight: 600; color: var(--text-primary); }
+
+.sla-live-chart--center { align-items: center; text-align: center; }
+
+.sla-live-gauge-body { flex: 1; display: flex; align-items: center; justify-content: center; }
+.sla-live-gauge-value { font-size: 24px; font-weight: 800; fill: var(--text-primary); font-family: inherit; }
+.sla-live-gauge-sub { font-size: 9px; fill: var(--text-secondary); font-family: inherit; }
+
+.sla-live-hbar-list { display: flex; flex-direction: column; gap: 10px; flex: 1; justify-content: center; }
+.sla-live-hbar-row { display: grid; grid-template-columns: 110px 1fr 36px; align-items: center; gap: 8px; }
+.sla-live-hbar-label {
+  font-size: 11.5px; color: var(--text-primary); font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sla-live-hbar-track { background: #EEF0F5; border-radius: 6px; height: 10px; overflow: hidden; }
+.sla-live-hbar-fill { height: 100%; background: var(--dxc-gradient-h); border-radius: 6px; }
+.sla-live-hbar-value { font-size: 11.5px; font-weight: 700; color: var(--text-primary); text-align: right; }
+
+.sla-live-trend-area { fill: rgba(232,100,58,0.12); stroke: none; }
+
+.sla-live-attention-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; flex: 1; justify-content: center; }
+.sla-live-attention-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.sla-live-attention-dot { width: 8px; height: 8px; border-radius: 50%; background: #F0C36D; flex-shrink: 0; }
+.sla-live-attention-name { flex: 1; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sla-live-attention-rate { font-weight: 700; color: var(--dxc-coral); }
+.sla-live-attention-sub { color: var(--text-secondary); font-size: 11px; }

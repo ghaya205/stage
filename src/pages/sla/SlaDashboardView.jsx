@@ -9,6 +9,7 @@ import {
 } from '../../services/api';
 import SlaFilterBar, { computeDateRange, emptyFilters, groupSeriesForChart } from './SlaFilterBar';
 import { DonutChart, BarChart } from './SlaCharts';
+import { ComplianceGauge, TopQueuesByVolume, AnswerRateTrend, QueuesNeedingAttention } from './SlaLiveCharts';
 import ImportPanel from './ImportPanel';
 import './SlaDashboardView.css';
 
@@ -135,21 +136,7 @@ function CompanyCard({ company, defaultOpen }) {
   );
 }
 
-function extractBreaches(data) {
-  const breaches = [];
-  for (const company of data?.companies || []) {
-    for (const desk of company.children || []) {
-      for (const queue of desk.children || []) {
-        if (queue.meets_answer_target === false) {
-          breaches.push({ queue_name: queue.name, desk_name: desk.name });
-        }
-      }
-    }
-  }
-  return breaches;
-}
-
-function LiveDashboard({ connected, data, breaches }) {
+function LiveDashboard({ connected, data }) {
   const overview = data?.overview;
   const highlights = data?.highlights || {};
   const companyList = data?.companies || [];
@@ -160,13 +147,6 @@ function LiveDashboard({ connected, data, breaches }) {
         <Radio size={16} />
         {connected ? 'Live — updates automatically as new data arrives' : 'Connecting…'}
       </div>
-
-      {breaches.length > 0 && (
-        <div className="sla-state-msg sla-state-msg--error">
-          <AlertCircle size={18} />
-          <p>{breaches.length} queue{breaches.length > 1 ? 's' : ''} currently below their SLA target: {breaches.map((b) => b.queue_name).join(', ')}</p>
-        </div>
-      )}
 
       {!data && (
         <div className="sla-state-msg"><RefreshCw size={20} className="sla-spin" /> Waiting for live data…</div>
@@ -203,11 +183,13 @@ function LiveDashboard({ connected, data, breaches }) {
               centerLabel={overview?.offered ?? 0}
               segments={topDesksByVolume(companyList)}
             />
-            <BarChart
-              groups={groupSeriesForChart(data?.series, emptyFilters())}
-              seriesA={{ key: 'handled', label: 'Handled', color: '#E8643A' }}
-              seriesB={{ key: 'abandoned', label: 'Abandoned', color: '#9CA3AF' }}
-            />
+          </div>
+
+          <div className="sla-live-charts-grid">
+            <ComplianceGauge companies={companyList} />
+            <TopQueuesByVolume companies={companyList} />
+            <AnswerRateTrend hourly={data?.hourly} />
+            <QueuesNeedingAttention companies={companyList} />
           </div>
         </>
       )}
@@ -226,9 +208,13 @@ export default function SlaDashboardView({ mode, token }) {
 
   const [liveData, setLiveData] = useState(null);
   const [liveConnected, setLiveConnected] = useState(false);
-  const [liveBreaches, setLiveBreaches] = useState([]);
 
   const { dateFrom, dateTo } = computeDateRange(filters);
+
+  // Real Time always shows *today* only — it must never inherit the
+  // Year/Month/Week/Day filters used by Historical Data.
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -270,15 +256,14 @@ export default function SlaDashboardView({ mode, token }) {
     const poll = async () => {
       try {
         const res = mode === 'admin'
-          ? await fetchAdminSlaDashboard(token, { companyId: filters.companyId, dateFrom, dateTo, deskName: filters.deskName })
-          : await fetchSupervisorSlaDashboard(token, { dateFrom, dateTo, deskName: filters.deskName });
+          ? await fetchAdminSlaDashboard(token, { companyId: filters.companyId, dateFrom: todayStr, dateTo: todayStr, deskName: filters.deskName })
+          : await fetchSupervisorSlaDashboard(token, { dateFrom: todayStr, dateTo: todayStr, deskName: filters.deskName });
         if (cancelled) return;
         if (res.error) {
           setLiveConnected(false);
           return;
         }
         setLiveData(res);
-        setLiveBreaches(extractBreaches(res));
         setLiveConnected(true);
       } catch {
         if (!cancelled) setLiveConnected(false);
@@ -293,7 +278,7 @@ export default function SlaDashboardView({ mode, token }) {
       clearInterval(intervalId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, token, mode, filters.companyId, filters.deskName, dateFrom, dateTo]);
+  }, [tab, token, mode, filters.companyId, filters.deskName, todayStr]);
 
   const overview = data?.overview;
   const highlights = data?.highlights || {};
@@ -314,7 +299,7 @@ export default function SlaDashboardView({ mode, token }) {
       />
 
       {tab === 'realtime' && (
-        <LiveDashboard connected={liveConnected} data={liveData} breaches={liveBreaches} />
+        <LiveDashboard connected={liveConnected} data={liveData} />
       )}
 
       {tab === 'historical' && (

@@ -95,10 +95,17 @@ class SlaData {
         END)";
     }
 
+    /**
+     * Normalizes an incoming CSV date to the exact text format already used by
+     * every historical row in this table: m/d/Y with NO leading zeros
+     * (e.g. "2/1/2025", "7/15/2026") — never zero-padded ("02/01/2025" would
+     * NOT match existing rows). Keeping one single format across old and new
+     * imports is what lets STR_TO_DATE(..., '%c/%e/%Y') parse the whole table.
+     */
     private static function toDbDate(?string $raw): ?string {
         if (!$raw) return null;
         $ts = strtotime(trim($raw));
-        return $ts ? date('Y-m-d', $ts) : null;
+        return $ts ? date('n/j/Y', $ts) : null; // n and j are PHP's no-leading-zero month/day specifiers
     }
 
    
@@ -190,7 +197,8 @@ class SlaData {
         $where  = [];
         $params = [];
 
-        // d.StartDate is stored as text (e.g. "2/1/2025"); compare via STR_TO_DATE.
+        // d.StartDate is stored as text in m/d/Y form, no leading zeros
+        // (e.g. "2/1/2025", "7/15/2026") — matches every row, old and new.
         if ($dateFrom) { $where[] = "STR_TO_DATE(d.StartDate, '%c/%e/%Y') >= ?"; $params[] = $dateFrom; }
         if ($dateTo)   { $where[] = "STR_TO_DATE(d.StartDate, '%c/%e/%Y') <= ?"; $params[] = $dateTo; }
         if ($companyId) { $where[] = 't.company_id = ?'; $params[] = $companyId; }
@@ -288,6 +296,39 @@ class SlaData {
                 $whereSql
                 GROUP BY the_date
                 ORDER BY the_date ASC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Hour-of-day breakdown (0-23) for a single day — powers the Real Time
+     * "trend over the last 24h" line chart and the "abandonment by hour" heatmap.
+     * StartTime is stored as free text like "07:00" / "07:00:00"; the hour is
+     * the piece before the first colon.
+     */
+    public function getHourlySeries(string $date, ?int $companyId = null, ?string $deskName = null): array {
+        $where  = ["STR_TO_DATE(d.StartDate, '%c/%e/%Y') = ?"];
+        $params = [$date];
+        if ($companyId) { $where[] = 't.company_id = ?'; $params[] = $companyId; }
+        if ($deskName)  { $where[] = 't.desk_name = ?';  $params[] = $deskName; }
+        $whereSql = 'WHERE ' . implode(' AND ', $where);
+
+        $sql = "SELECT
+                    CAST(SUBSTRING_INDEX(d.StartTime, ':', 1) AS UNSIGNED) AS hour,
+                    " . self::sumCount('d', 'Contacts handled incoming') . " AS handled,
+                    " . self::sumCount('d', 'Contacts abandoned') . " AS abandoned,
+                    " . self::sumCount('d', 'Contacts answered in 40 seconds') . " AS answered_lt40,
+                    COALESCE(
+                        " . self::sumCount('d', 'Contacts queued') . ",
+                        " . self::sumCount('d', 'Contacts handled incoming') . " + " . self::sumCount('d', 'Contacts abandoned') . "
+                    ) AS offered
+                FROM sla_data d
+                JOIN sla_targets t ON t.queue_name = d.Queue
+                $whereSql
+                GROUP BY hour
+                ORDER BY hour ASC";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
