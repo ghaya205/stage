@@ -3,11 +3,65 @@ namespace Controllers;
 
 use Core\Controller;
 use Models\CaseAudit;
+use Models\Desk;
 use Models\User;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 class CaseAuditController extends Controller {
+
+    /** Score below this triggers an automatic coaching note shown to the agent. */
+    private const COACHING_THRESHOLD = 70.0;
+
+    /**
+     * GET /case-audits/lookup-agent?email=...
+     * Loads an agent by email plus their desk's question sets for the QA form.
+     * Supervisors/admins only.
+     */
+    public function lookupAgent(): void {
+        $decoded = $this->requireAuth();
+        if (!in_array((int) $decoded->role_id, [2, 3], true)) {
+            $this->json(['error' => 'Forbidden'], 403);
+        }
+
+        $email = trim($_GET['email'] ?? '');
+        if (!$email) {
+            $this->json(['error' => 'email is required'], 400);
+        }
+
+        $userModel = new User();
+        $agent = $userModel->findByEmail($email);
+        if (!$agent || (int) $agent['role_id'] !== 1) {
+            $this->json(['error' => 'No agent found with this email'], 404);
+        }
+
+        $desk = null;
+        if (!empty($agent['desk_id'])) {
+            $deskModel = new Desk();
+            $found = $deskModel->find((int) $agent['desk_id']);
+            $desk = $found ?: null;
+        }
+
+        $auditModel = new CaseAudit();
+        $stats = $auditModel->statsForAgent((int) $agent['id']);
+
+        $this->json([
+            'agent' => [
+                'id'    => (int) $agent['id'],
+                'name'  => $agent['name'],
+                'email' => $agent['email'],
+            ],
+            'desk'  => $desk ? [
+                'id'             => (int) $desk['id'],
+                'name'           => $desk['name'],
+                'acronym'        => $desk['acronym'],
+                'call_questions' => $desk['call_questions'],
+                'case_questions' => $desk['case_questions'],
+                'chat_questions' => $desk['chat_questions'],
+            ] : null,
+            'stats' => $stats,
+        ]);
+    }
 
     /** POST /case-audits — "CONFIRM CASE" button. Only supervisors/admins can audit. */
     public function create(): void {
@@ -33,7 +87,15 @@ class CaseAuditController extends Controller {
             $this->json(['error' => 'Agent not found'], 404);
         }
 
-        $score = $this->computeScore($answers, $data['weights'] ?? []);
+        // Answers are Yes/No (1/0). A "No" on any eliminator question fails the
+        // whole assessment outright, matching the paper form's "ELIMINATOR" flag.
+        $eliminatorFailed = !empty($data['eliminator_failed']);
+        $score = $eliminatorFailed ? 0.0 : $this->computeScore($answers, $data['weights'] ?? []);
+
+        $feedback = $data['feedback'] ?? [];
+        if ($score < self::COACHING_THRESHOLD) {
+            $feedback['coaching_note'] = 'A coaching session will be automatically scheduled to discuss areas for improvement.';
+        }
 
         $auditModel = new CaseAudit();
         $id = $auditModel->create([
@@ -44,12 +106,31 @@ class CaseAuditController extends Controller {
             'channel'         => $data['channel']         ?? null,
             'assessment_type' => $assessmentType,
             'answers'         => $answers,
-            'feedback'        => $data['feedback']        ?? [],
+            'feedback'        => $feedback,
             'score'           => $score,
             'wfe_result'      => $data['wfe_result']      ?? null,
         ]);
 
-        $this->json(['message' => 'Case confirmed', 'id' => $id, 'score' => $score], 201);
+        $this->json([
+            'message'        => 'Case confirmed',
+            'id'             => $id,
+            'score'          => $score,
+            'needs_coaching' => $score < self::COACHING_THRESHOLD,
+        ], 201);
+    }
+
+    /** GET /case-audits/mine — an agent viewing their own assessment history/coaching notes. */
+    public function mine(): void {
+        $decoded = $this->requireAuth();
+        if ((int) $decoded->role_id !== 1) {
+            $this->json(['error' => 'Forbidden'], 403);
+        }
+
+        $auditModel = new CaseAudit();
+        $this->json([
+            'audits' => $auditModel->forAgent((int) $decoded->sub),
+            'stats'  => $auditModel->statsForAgent((int) $decoded->sub),
+        ]);
     }
 
     /** GET /case-audits?agent_id=123 — feeds the "Case Audit Logs" history table. */
@@ -102,14 +183,14 @@ class CaseAuditController extends Controller {
         exit;
     }
 
-    /** Percentage score = sum of (answer value) weighted, over max possible. Adjust to match your COF/NOTE rules. */
+    /** Percentage score = sum of (Yes=1/No=0 answers) weighted, over max possible. */
     private function computeScore(array $answers, array $weights): float {
         $total = 0;
         $max   = 0;
         foreach ($answers as $qKey => $value) {
             $weight = (float) ($weights[$qKey] ?? 1);
             $total += ((float) $value) * $weight;
-            $max   += 4 * $weight; // adjust 4 if your answer scale isn't 0-4
+            $max   += 1 * $weight; // answers are binary (Yes=1 / No=0)
         }
         return $max > 0 ? round(($total / $max) * 100, 2) : 0.0;
     }

@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Settings, LogOut, Shield, Users, FileText,
-  Award, Briefcase, Folder, HeartPulse, User as UserIcon, ListChecks,
+  Award, Briefcase, Folder, HeartPulse, User as UserIcon, ListChecks, ClipboardCheck,
 } from 'lucide-react';
 import dxcLogo from '../assets/dxclogo.png';
 
@@ -12,6 +12,7 @@ const roleMenus = {
       section: 'Workspace',
       items: [
         { icon: FileText,    label: 'Requests',       path: '/agent/requests' },
+        { icon: ClipboardCheck, label: 'My Assessments', path: '/agent/quality' },
         { icon: Award,       label: 'Qualifications',  path: '/agent/qualifications' },
         { icon: Briefcase,   label: 'Opportunities',   path: '/agent/opportunities' },
         { icon: Folder,      label: 'My Documents',    path: '/agent/documents' },
@@ -31,6 +32,7 @@ const roleMenus = {
       section: 'Workspace',
       items: [
         { icon: LayoutDashboard, label: 'Team SLA Dashboard', path: '/supervisor/dashboard' },
+        { icon: ClipboardCheck, label: 'Quality Assessment', path: '/supervisor/quality' },
         { icon: FileText,    label: 'Requests',       path: '/supervisor/requests' },
         { icon: Award,       label: 'Qualifications',  path: '/supervisor/qualifications' },
         { icon: Briefcase,   label: 'Opportunities',   path: '/supervisor/opportunities' },
@@ -51,6 +53,7 @@ const roleMenus = {
       section: 'Workspace',
       items: [
         { icon: LayoutDashboard, label: 'SLA Dashboard', path: '/admin/dashboard' },
+        { icon: ClipboardCheck, label: 'Quality Assessment', path: '/admin/quality' },
         { icon: FileText,    label: 'Requests',       path: '/admin/requests' },
         { icon: Award,       label: 'Qualifications',  path: '/admin/qualifications' },
         { icon: Briefcase,   label: 'Opportunities',   path: '/admin/opportunities' },

@@ -69,6 +69,8 @@ $router->add('GET',  '/sla/dashboard/mine',   'SlaController', 'supervisorDashbo
 $router->add('GET',  '/sla/stream',           'SlaController', 'stream');
 
 // Case Assessment / QA Audit
+$router->add('GET',  '/case-audits/lookup-agent', 'CaseAuditController', 'lookupAgent');
+$router->add('GET',  '/case-audits/mine',        'CaseAuditController', 'mine');
 $router->add('POST', '/case-audits',        'CaseAuditController', 'create');
 $router->add('GET',  '/case-audits',        'CaseAuditController', 'forAgent');
 $router->add('GET',  '/case-audits/export', 'CaseAuditController', 'exportForAgent');

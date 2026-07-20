@@ -482,6 +482,13 @@ export async function importSlaData(token, file) {
 
 // ---- Case Assessment / QA Audit ----
 
+export async function lookupAgentForAudit(token, email) {
+  const res = await fetch(`${BASE}/case-audits/lookup-agent?email=${encodeURIComponent(email)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
 export async function createCaseAudit(token, payload) {
   const res = await fetch(`${BASE}/case-audits`, {
     method: "POST",
@@ -514,4 +521,11 @@ export async function downloadCaseAuditsCsv(token, agentId) {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+export async function fetchMyCaseAudits(token) {
+  const res = await fetch(`${BASE}/case-audits/mine`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
 }

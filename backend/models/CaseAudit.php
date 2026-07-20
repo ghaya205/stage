@@ -38,11 +38,14 @@ class CaseAudit {
         $stmt = $this->db->prepare(
             "SELECT ca.*, u.name AS agent_name, u.email AS agent_email,
                     au.name AS auditor_name, au.email AS auditor_email,
-                    d.name AS desk_name
+                    d.name AS desk_name,
+                    d.call_questions AS desk_call_questions,
+                    d.case_questions AS desk_case_questions,
+                    d.chat_questions AS desk_chat_questions
              FROM case_audits ca
-             JOIN users u  ON u.id = ca.agent_id
-             JOIN users au ON au.id = ca.auditor_id
-             JOIN desks d  ON d.id = ca.desk_id
+             JOIN users u       ON u.id = ca.agent_id
+             LEFT JOIN users au ON au.id = ca.auditor_id
+             JOIN desks d       ON d.id = ca.desk_id
              WHERE ca.agent_id = ?
              ORDER BY ca.assessed_at DESC"
         );
@@ -72,6 +75,31 @@ class CaseAudit {
     private function decode(array $row): array {
         $row['answers']  = json_decode($row['answers'] ?? '[]', true) ?? [];
         $row['feedback'] = json_decode($row['feedback'] ?? '[]', true) ?? [];
+
+        $questionField = [
+            'call' => 'desk_call_questions',
+            'case' => 'desk_case_questions',
+            'chat' => 'desk_chat_questions',
+        ][$row['assessment_type']] ?? null;
+
+        $questions = $questionField ? (json_decode($row[$questionField] ?? '[]', true) ?? []) : [];
+        unset($row['desk_call_questions'], $row['desk_case_questions'], $row['desk_chat_questions']);
+
+        // One entry per answered question: the question text, Yes/No, and any
+        // comment the auditor left — this is what the agent sees per assessment.
+        $breakdown = [];
+        foreach ($row['answers'] as $qKey => $value) {
+            $index = (int) str_replace('q', '', $qKey);
+            $breakdown[] = [
+                'key'      => $qKey,
+                'question' => $questions[$index]['question'] ?? $qKey,
+                'category' => $questions[$index]['category'] ?? null,
+                'answer'   => (int) $value === 1 ? 'yes' : 'no',
+                'comment'  => $row['feedback'][$qKey] ?? null,
+            ];
+        }
+        $row['breakdown'] = $breakdown;
+
         return $row;
     }
 }

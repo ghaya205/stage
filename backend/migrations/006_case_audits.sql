@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS case_audits (
     id              INT AUTO_INCREMENT PRIMARY KEY,
     agent_id        INT NOT NULL,
     desk_id         INT NOT NULL,
-    auditor_id      INT NOT NULL,
+    auditor_id      INT NULL,
     ticket_ref      VARCHAR(100) NULL,
     channel         VARCHAR(50)  NULL,
     assessment_type ENUM('call','case','chat') NOT NULL,
@@ -26,4 +26,4 @@ CREATE TABLE IF NOT EXISTS case_audits (
     INDEX idx_case_audits_agent (agent_id),
     INDEX idx_case_audits_desk (desk_id),
     INDEX idx_case_audits_date (assessed_at)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

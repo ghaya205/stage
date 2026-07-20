@@ -1073,3 +1073,137 @@
 .desk-remove-btn:hover {
   background: #FEE2E2;
 }
+/* ---- Quality Assessment ---- */
+.qa-lookup-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+.qa-lookup-input { flex: 1; margin-bottom: 0; }
+.qa-lookup-btn { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+
+.qa-agent-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  background: #F9FAFB;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.qa-agent-label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); }
+.qa-agent-value { display: block; font-size: 14px; font-weight: 600; color: var(--text-primary); margin-top: 2px; }
+
+.qa-question-list { display: flex; flex-direction: column; gap: 12px; margin: 18px 0; }
+.qa-question-row {
+  display: grid;
+  grid-template-columns: 1fr auto 220px;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+}
+.qa-question-row--eliminator {
+  background: #FEF2F2;
+  border-color: #FECACA;
+}
+.qa-question-text { font-size: 13.5px; color: var(--text-primary); line-height: 1.4; }
+.qa-question-index { font-weight: 700; margin-right: 4px; }
+.qa-eliminator-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #fff;
+  background: #DC2626;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+.qa-category-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: #EEF2FF;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+.qa-yesno-group { display: flex; gap: 8px; }
+.qa-yesno-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.qa-yesno-btn--yes.active { background: rgba(16,185,129,0.12); border-color: #10B981; color: #059669; }
+.qa-yesno-btn--no.active { background: rgba(220,38,38,0.10); border-color: #DC2626; color: #DC2626; }
+.qa-comment-input { margin-bottom: 0; }
+
+.qa-result-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 10px;
+}
+.qa-result-box--good { background: rgba(16,185,129,0.08); border: 1px solid #A7F3D0; }
+.qa-result-box--low  { background: #FEF2F2; border: 1px solid #FECACA; }
+.qa-result-score { font-size: 28px; font-weight: 800; color: var(--text-primary); min-width: 78px; }
+.qa-result-msg { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #B91C1C; font-weight: 500; }
+.qa-result-msg--good { color: #047857; }
+
+.qa-history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.qa-export-btn { display: inline-flex; align-items: center; gap: 6px; width: auto; padding: 8px 14px; }
+
+.qa-history-row { cursor: pointer; }
+.qa-history-row:hover { background: #F9FAFB; }
+.qa-breakdown-cell { background: #F9FAFB; padding: 14px 16px !important; }
+.qa-breakdown-list { display: flex; flex-direction: column; gap: 10px; }
+.qa-breakdown-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.qa-breakdown-item--no { background: #FEF2F2; border-color: #FECACA; }
+.qa-breakdown-question { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-primary); }
+.qa-breakdown-answer {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(16,185,129,0.12);
+  color: #059669;
+}
+.qa-breakdown-answer--no { background: rgba(220,38,38,0.12); color: #DC2626; }
+.qa-breakdown-comment {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  font-style: italic;
+  padding-top: 4px;
+  border-top: 1px dashed var(--border);
+}

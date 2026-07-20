@@ -17,6 +17,8 @@ import QualificationsPage  from './pages/qualifications/QualificationsPage';
 import OpportunitiesPage   from './pages/opportunities/OpportunitiesPage';
 import DocumentsPage       from './pages/documents/DocumentsPage';
 import InsurancePage       from './pages/insurance/InsurancePage';
+import QualityAssessment   from './pages/quality/QualityAssessment';
+import AgentDashboard      from './pages/agent/AgentDashboard';
 
 const ROLE_HOME = { 1: '/agent/requests', 2: '/supervisor/dashboard', 3: '/admin/dashboard' };
 
@@ -49,6 +51,7 @@ function AppRoutes() {
       <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
 
       <Route path="/agent/requests"       element={<RoleRoute allowedRoleId={1}><RequestsPage /></RoleRoute>} />
+      <Route path="/agent/quality"        element={<RoleRoute allowedRoleId={1}><AgentDashboard /></RoleRoute>} />
       <Route path="/agent/qualifications" element={<RoleRoute allowedRoleId={1}><QualificationsPage /></RoleRoute>} />
       <Route path="/agent/opportunities"  element={<RoleRoute allowedRoleId={1}><OpportunitiesPage /></RoleRoute>} />
       <Route path="/agent/documents"      element={<RoleRoute allowedRoleId={1}><DocumentsPage /></RoleRoute>} />
@@ -57,6 +60,7 @@ function AppRoutes() {
       <Route path="/agent/settings"       element={<RoleRoute allowedRoleId={1}><SettingsPage /></RoleRoute>} />
 
       <Route path="/supervisor/dashboard"      element={<RoleRoute allowedRoleId={2}><SupervisorDashboard /></RoleRoute>} />
+      <Route path="/supervisor/quality"        element={<RoleRoute allowedRoleId={2}><QualityAssessment /></RoleRoute>} />
       <Route path="/supervisor/requests"       element={<RoleRoute allowedRoleId={2}><RequestsPage /></RoleRoute>} />
       <Route path="/supervisor/qualifications" element={<RoleRoute allowedRoleId={2}><QualificationsPage /></RoleRoute>} />
       <Route path="/supervisor/opportunities"  element={<RoleRoute allowedRoleId={2}><OpportunitiesPage /></RoleRoute>} />
@@ -66,6 +70,7 @@ function AppRoutes() {
       <Route path="/supervisor/settings"       element={<RoleRoute allowedRoleId={2}><SettingsPage /></RoleRoute>} />
 
       <Route path="/admin/dashboard"      element={<RoleRoute allowedRoleId={3}><AdminDashboard /></RoleRoute>} />
+      <Route path="/admin/quality"        element={<RoleRoute allowedRoleId={3}><QualityAssessment /></RoleRoute>} />
       <Route path="/admin/sla-queues"     element={<RoleRoute allowedRoleId={3}><SlaQueuesPage /></RoleRoute>} />
       <Route path="/admin/user-approvals" element={<RoleRoute allowedRoleId={3}><UserApprovals /></RoleRoute>} />
       <Route path="/admin/management"     element={<RoleRoute allowedRoleId={3}><AdminManagement /></RoleRoute>} />
